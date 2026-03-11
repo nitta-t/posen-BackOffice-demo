@@ -1,0 +1,97 @@
+<aside class="sidebar h-full flex flex-col bg-slate-900 border-r border-slate-800">
+    <div class="sidebar-header h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
+        <a href="index.html"
+            class="brand flex items-center gap-2 text-white font-bold text-lg hover:text-white transition-colors">
+            <i data-lucide="layout-dashboard"></i> POSEN ADMIN
+        </a>
+    </div>
+    <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto w-full max-w-full">
+        <ul class="nav-links list-none p-0 m-0">
+            <!-- 1. ダッシュボード -->
+            <li class="nav-item">
+                <a href="index.html" class="nav-link" data-path="index.html">
+                    <i data-lucide="layout-dashboard"></i> ダッシュボード
+                </a>
+            </li>
+
+            <!-- 2. 顧客管理 -->
+            <li class="nav-item">
+                <a href="customers.html" class="nav-link" data-path="customers.html|customer-detail.html">
+                    <i data-lucide="users"></i> 顧客管理
+                </a>
+            </li>
+
+            <!-- 3. アカウント管理 (展開・折りたたみ可能) -->
+            <li class="nav-item nav-has-children border-none m-0 p-0" id="accounts-menu-group">
+                <a href="#" class="nav-link flex justify-between items-center w-full" id="accounts-menu-toggle">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="building-2"></i> アカウント管理
+                    </div>
+                    <i data-lucide="chevron-down" class="ml-auto chevron-icon transition-transform duration-200"
+                        width="16"></i>
+                </a>
+                <ul class="nav-sub-menu flex-col gap-1 list-none m-0" id="accounts-sub-menu"
+                    style="display: none; padding-left: 2.8rem; padding-top: 0.5rem; padding-bottom: 0.5rem; background: rgba(0,0,0,0.1);">
+                    <li>
+                        <a href="accounts.html" class="nav-sub-link block py-1 text-slate-400 hover:text-white"
+                            data-path="accounts.html|account-detail.html">
+                            Clinicsアカウント
+                        </a>
+                    </li>
+                    <li>
+                        <a href="account-user-detail.html"
+                            class="nav-sub-link block py-1 text-slate-400 hover:text-white"
+                            data-path="account-user-detail.html">
+                            Userアカウント
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- セパレーター -->
+            <li class="my-2 border-t border-slate-800 mx-4"></li>
+
+            <!-- 4. アクティビティログ -->
+            <li class="nav-item">
+                <a href="activity-logs.html" class="nav-link" data-path="activity-logs.html">
+                    <i data-lucide="activity"></i> アクティビティログ
+                </a>
+            </li>
+
+            <!-- 5. データベース -->
+            <li class="nav-item">
+                <a href="database.html" class="nav-link" data-path="database.html">
+                    <i data-lucide="database"></i> データベース
+                </a>
+            </li>
+
+            <!-- 6. 売上管理 -->
+            <li class="nav-item">
+                <a href="billing.html" class="nav-link" data-path="billing.html">
+                    <i data-lucide="receipt"></i> 売上管理
+                </a>
+            </li>
+
+            <!-- 7. 詳細分析 -->
+            <li class="nav-item">
+                <a href="analytics.html" class="nav-link" data-path="analytics.html">
+                    <i data-lucide="bar-chart-2"></i> 詳細分析
+                </a>
+            </li>
+
+            <!-- 8. アクセス管理 (下部に固定) -->
+            <li class="nav-item border-t border-slate-800 pt-2" style="margin-top: auto;">
+                <a href="admin-accounts.html" class="nav-link" data-path="admin-accounts.html">
+                    <i data-lucide="shield-check"></i> アクセス管理
+                </a>
+            </li>
+
+            <!-- 9. 設定 -->
+            <li class="nav-item">
+                <a href="settings.html" class="nav-link" data-path="settings.html">
+                    <i data-lucide="settings"></i> 設定
+                </a>
+            </li>
+        </ul>
+    </nav>
+</aside>

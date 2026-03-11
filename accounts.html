@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - アカウント管理</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/table.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/table.js"></script>
+    <style>
+        /* フィルタードロップダウン */
+        .filter-dropdown-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .filter-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border: 1px solid var(--color-slate-200, #e2e8f0);
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-family: inherit;
+            color: var(--color-slate-700);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            white-space: nowrap;
+        }
+
+        .filter-dropdown-btn:hover {
+            border-color: var(--color-slate-300);
+        }
+
+        .filter-dropdown-btn.has-filter {
+            border-color: var(--color-primary-400);
+            color: var(--color-primary-700);
+            background: var(--color-primary-50, #eff6ff);
+        }
+
+        .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-primary-600);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+        }
+
+        .filter-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            z-index: 999;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            width: 220px;
+            padding: 12px;
+            display: none;
+            animation: panelIn 0.12s ease;
+        }
+
+        .filter-panel.open {
+            display: block;
+        }
+
+        @keyframes panelIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-panel-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--color-slate-400);
+            margin-bottom: 6px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.1s;
+            font-size: 0.875rem;
+        }
+
+        .filter-option:hover {
+            background: #f8fafc;
+        }
+
+        .filter-option input[type="radio"] {
+            accent-color: var(--color-primary-600);
+            cursor: pointer;
+        }
+
+        .filter-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 8px 0;
+        }
+
+        .filter-clear-btn {
+            width: 100%;
+            padding: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--color-slate-400);
+            text-align: center;
+            border-radius: 6px;
+            font-family: inherit;
+            transition: background 0.1s, color 0.1s;
+        }
+
+        .filter-clear-btn:hover {
+            background: #fee2e2;
+            color: var(--color-danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1">アカウント管理</h1>
+                    <p class="text-muted text-sm">システム内の全アカウントを一元管理</p>
+                </div>
+                <button id="btn-create" class="btn btn-primary"
+                    onclick="window.location.href='account-detail.html?mode=create'">
+                    <i data-lucide="plus" width="16"></i> Clinicsアカウント新規作成
+                </button>
+            </div>
+
+            <!-- タブ -->
+            <div class="page-tabs" style="margin-bottom:0;">
+                <button class="page-tab-btn active" onclick="switchTab('clinics', this)">
+                    <i data-lucide="building-2" width="16"></i> CliniCs アカウント
+                </button>
+                <button class="page-tab-btn" onclick="switchTab('users', this)">
+                    <i data-lucide="user" width="16"></i> Users アカウント
+                </button>
+            </div>
+
+            <div class="card p-0">
+
+                <!-- フィルターバー -->
+                <div class="p-4 flex justify-between items-center"
+                    style="border-bottom: 1px solid var(--color-slate-100); background: #f8fafc80; gap: 12px;">
+                    <div class="flex gap-2 items-center">
+                        <!-- ステータスフィルター -->
+                        <div class="filter-dropdown-wrap">
+                            <button class="filter-dropdown-btn" id="status-filter-btn"
+                                onclick="toggleFilterPanel('status-filter-panel', this)">
+                                <i data-lucide="sliders-horizontal" width="14"></i>
+                                <span id="status-filter-label">ステータス</span>
+                                <span class="filter-badge" id="status-filter-badge" style="display:none;">1</span>
+                                <i data-lucide="chevron-down" width="14"></i>
+                            </button>
+                            <div class="filter-panel" id="status-filter-panel">
+                                <div class="filter-panel-label">ステータス</div>
+                                <label class="filter-option">
+                                    <input type="radio" name="acc-status" value="" checked
+                                        onchange="applyAccountFilter()"> すべて
+                                </label>
+                                <label class="filter-option">
+                                    <input type="radio" name="acc-status" value="active"
+                                        onchange="applyAccountFilter()"> 有効
+                                </label>
+                                <label class="filter-option">
+                                    <input type="radio" name="acc-status" value="inactive"
+                                        onchange="applyAccountFilter()"> 無効
+                                </label>
+                                <div class="filter-divider"></div>
+                                <button class="filter-clear-btn" onclick="clearAccountFilter()">フィルターをクリア</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="position: relative; width: 320px;">
+                        <i data-lucide="search" width="16"
+                            style="position:absolute;left:12px;top:12px;color:var(--color-slate-500);"></i>
+                        <input type="text" id="account-search" class="input" placeholder="IDまたはアカウント名で検索..."
+                            style="padding-left:36px;" oninput="applyAccountFilter()">
+                    </div>
+                </div>
+
+                <!-- Clinicsテーブル -->
+                <div id="tab-clinics">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="string">ID</th>
+                                <th data-sort="string">顧客名</th>
+                                <th data-sort="string">アカウント名</th>
+                                <th data-sort="string">親アカウント</th>
+                                <th data-sort="string">ステータス</th>
+                                <th>オプション</th>
+                                <th data-sort="string">4DF連携 ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clinics-tbody">
+                            <tr class="hover-actions-row" data-status="active"
+                                onclick="window.location.href='account-detail.html'" style="cursor:pointer;">
+                                <td class="text-muted font-mono">CL001</td>
+                                <td class="text-sm">医療法人社団 青山会</td>
+                                <td class="font-bold">青山美容クリニック 本院</td>
+                                <td class="text-muted">-</td>
+                                <td><span class="badge badge-success">有効</span></td>
+                                <td>
+                                    <div class="flex gap-2 flex-wrap"><span class="badge badge-info">基本機能</span><span
+                                            class="badge badge-info">4DF連携</span></div>
+                                </td>
+                                <td class="font-mono text-sm">4DF-CL001</td>
+                            </tr>
+                            <tr class="hover-actions-row" data-status="active"
+                                onclick="window.location.href='account-detail.html'" style="cursor:pointer;">
+                                <td class="text-muted font-mono">CL002</td>
+                                <td class="text-sm">医療法人社団 青山会</td>
+                                <td class="font-bold">青山美容クリニック 渋谷院</td>
+                                <td class="text-muted">CL001</td>
+                                <td><span class="badge badge-success">有効</span></td>
+                                <td>
+                                    <div class="flex gap-2"><span class="badge badge-info">基本機能</span></div>
+                                </td>
+                                <td class="text-muted">-</td>
+                            </tr>
+                            <tr class="hover-actions-row" data-status="inactive" onclick="window.location.href='#'"
+                                style="cursor:pointer;">
+                                <td class="text-muted font-mono">CL003</td>
+                                <td class="text-sm">山田皮膚科</td>
+                                <td class="font-bold">鈴木整骨院</td>
+                                <td class="text-muted">-</td>
+                                <td><span class="badge badge-neutral">無効</span></td>
+                                <td>
+                                    <div class="flex gap-2"><span class="badge badge-info">基本機能</span><span
+                                            class="badge badge-info">運動機能測定</span></div>
+                                </td>
+                                <td class="text-muted">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Usersテーブル -->
+                <div id="tab-users" style="display:none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="string">顧客名</th>
+                                <th data-sort="string">Clinicsアカウント</th>
+                                <th data-sort="string">アカウント名</th>
+                                <th data-sort="string">ログインID</th>
+                                <th data-sort="string">権限</th>
+                                <th data-sort="string">最終ログイン</th>
+                                <th data-sort="string">有効期限</th>
+                                <th data-sort="string">ステータス</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr class="hover-actions-row" data-status="active"
+                                onclick="window.location.href='account-user-detail.html'" style="cursor:pointer;">
+                                <td class="text-sm">医療法人社団 青山会</td>
+                                <td>
+                                    <div class="text-sm">青山美容クリニック 本院</div>
+                                    <div class="text-xs text-muted font-mono">CL001</div>
+                                </td>
+                                <td class="font-medium">青山本院-01</td>
+                                <td class="font-mono text-muted">yamada@example.com</td>
+                                <td><span class="badge badge-neutral">master</span></td>
+                                <td class="text-sm text-muted">2026-03-09 10:45</td>
+                                <td class="text-sm">2025-12-31</td>
+                                <td><span class="badge badge-success">有効</span></td>
+                            </tr>
+                            <tr class="hover-actions-row" data-status="active"
+                                onclick="window.location.href='account-user-detail.html'" style="cursor:pointer;">
+                                <td class="text-sm">医療法人社団 青山会</td>
+                                <td>
+                                    <div class="text-sm">青山美容クリニック 本院</div>
+                                    <div class="text-xs text-muted font-mono">CL001</div>
+                                </td>
+                                <td class="font-medium">青山本院-02</td>
+                                <td class="font-mono text-muted">suzuki@example.com</td>
+                                <td><span class="badge badge-neutral">assistant</span></td>
+                                <td class="text-sm text-muted">2026-03-08 16:22</td>
+                                <td class="text-sm">2026-03-31</td>
+                                <td><span class="badge badge-success">有効</span></td>
+                            </tr>
+                            <tr class="hover-actions-row" data-status="inactive"
+                                onclick="window.location.href='account-user-detail.html'" style="cursor:pointer;">
+                                <td class="text-sm">医療法人社団 青山会</td>
+                                <td>
+                                    <div class="text-sm">青山美容クリニック 渋谷院</div>
+                                    <div class="text-xs text-muted font-mono">CL002</div>
+                                </td>
+                                <td class="font-medium">青山渋谷院-01</td>
+                                <td class="font-mono text-muted">tanaka@example.com</td>
+                                <td><span class="badge badge-neutral">staff</span></td>
+                                <td class="text-sm text-muted">2024-10-15 09:03</td>
+                                <td class="text-sm">2024-12-31</td>
+                                <td><span class="badge badge-neutral">無効</span></td>
+                            </tr>
+                            <tr class="hover-actions-row" data-status="active"
+                                onclick="window.location.href='account-user-detail.html'" style="cursor:pointer;">
+                                <td class="text-sm">山田皮膚科</td>
+                                <td>
+                                    <div class="text-sm">鈴木整骨院</div>
+                                    <div class="text-xs text-muted font-mono">CL003</div>
+                                </td>
+                                <td class="font-medium">鈴木整骨院-01</td>
+                                <td class="font-mono text-muted">sato@example.com</td>
+                                <td><span class="badge badge-neutral">staff</span></td>
+                                <td class="text-sm text-muted">2026-03-07 14:58</td>
+                                <td class="text-sm">2025-06-30</td>
+                                <td><span class="badge badge-success">有効</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+
+        let currentTab = 'clinics';
+
+        function switchTab(tabId, btnElement) {
+            document.getElementById('tab-clinics').style.display = 'none';
+            document.getElementById('tab-users').style.display = 'none';
+            document.getElementById('tab-' + tabId).style.display = 'block';
+            document.querySelectorAll('.page-tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+            currentTab = tabId;
+            const createBtn = document.getElementById('btn-create');
+            if (tabId === 'clinics') {
+                createBtn.innerHTML = '<i data-lucide="plus" width="16"></i> Clinicsアカウント新規作成';
+                createBtn.setAttribute('onclick', "window.location.href='account-detail.html?mode=create'");
+            } else {
+                createBtn.innerHTML = '<i data-lucide="plus" width="16"></i> Users アカウント新規作成';
+                createBtn.setAttribute('onclick', "window.location.href='account-user-detail.html?mode=create'");
+            }
+            lucide.createIcons();
+            applyAccountFilter();
+        }
+
+        // ===== フィルターパネル =====
+        function toggleFilterPanel(panelId, btn) {
+            const panel = document.getElementById(panelId);
+            const isOpen = panel.classList.contains('open');
+            document.querySelectorAll('.filter-panel.open').forEach(p => p.classList.remove('open'));
+            if (!isOpen) panel.classList.add('open');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-dropdown-wrap')) {
+                document.querySelectorAll('.filter-panel.open').forEach(p => p.classList.remove('open'));
+            }
+        });
+
+        function applyAccountFilter() {
+            const statusVal = document.querySelector('input[name="acc-status"]:checked')?.value || '';
+            const q = (document.getElementById('account-search')?.value || '').toLowerCase();
+
+            // バッジ更新
+            const badge = document.getElementById('status-filter-badge');
+            const filterBtn = document.getElementById('status-filter-btn');
+            const label = document.getElementById('status-filter-label');
+            if (statusVal) {
+                badge.style.display = 'inline-flex'; label.textContent = statusVal === 'active' ? '有効' : '無効';
+                filterBtn.classList.add('has-filter');
+            } else {
+                badge.style.display = 'none'; label.textContent = 'ステータス';
+                filterBtn.classList.remove('has-filter');
+            }
+
+            // 両テーブルに適用
+            ['clinics-tbody', 'users-tbody'].forEach(tbodyId => {
+                const tbody = document.getElementById(tbodyId);
+                tbody.querySelectorAll('tr').forEach(row => {
+                    const rowStatus = row.dataset.status || '';
+                    const text = row.textContent.toLowerCase();
+                    const statusMatch = !statusVal || rowStatus === statusVal;
+                    const searchMatch = !q || text.includes(q);
+                    row.style.display = (statusMatch && searchMatch) ? '' : 'none';
+                });
+            });
+        }
+
+        function clearAccountFilter() {
+            document.querySelector('input[name="acc-status"][value=""]').checked = true;
+            applyAccountFilter();
+        }
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

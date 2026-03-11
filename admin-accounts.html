@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - アクセス管理</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* テーブル */
+        .admin-table-wrap {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .admin-table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .admin-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.1s;
+        }
+
+        .admin-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .admin-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .admin-table tbody td {
+            padding: 10px 16px;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .status-dot::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status-dot.active {
+            color: #16a34a;
+        }
+
+        .status-dot.active::before {
+            background: #16a34a;
+        }
+
+        .status-dot.inactive {
+            color: #dc2626;
+        }
+
+        .status-dot.inactive::before {
+            background: #dc2626;
+        }
+
+        .status-dot.pending {
+            color: #d97706;
+        }
+
+        .status-dot.pending::before {
+            background: #d97706;
+        }
+
+        /* ボタン */
+        .btn-create {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-create:hover {
+            background: #2563eb;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.15s;
+        }
+
+        .btn-sm:hover {
+            background: #f1f5f9;
+        }
+
+        .btn-sm.primary {
+            color: #2563eb;
+            border-color: #bfdbfe;
+        }
+
+        .btn-sm.primary:hover {
+            background: #eff6ff;
+        }
+
+        /* モーダル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 540px;
+            max-width: 95vw;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-hd {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-grp {
+            margin-bottom: 1rem;
+        }
+
+        .form-lbl {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .form-inp {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            outline: none;
+            color: #1e293b;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-inp:focus {
+            border-color: #3b82f6;
+        }
+
+        .form-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        /* 権限テーブル */
+        .perm-lbl {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #475569;
+            margin: 1.25rem 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .perm-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 0.82rem;
+        }
+
+        .perm-tbl th {
+            background: #f8fafc;
+            padding: 7px 14px;
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .perm-tbl td {
+            padding: 8px 14px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .perm-tbl tr:last-child td {
+            border-bottom: none;
+        }
+
+        .perm-tbl td.c {
+            text-align: center;
+        }
+
+        .perm-tbl input[type=checkbox] {
+            cursor: pointer;
+            accent-color: #3b82f6;
+            width: 15px;
+            height: 15px;
+        }
+
+        /* 危険ゾーン */
+        .danger-zone {
+            margin-top: 1.5rem;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            background: #fff;
+        }
+
+        .danger-zone-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .danger-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-danger-sm {
+            padding: 6px 14px;
+            border-radius: 7px;
+            border: 1px solid #fecaca;
+            background: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #dc2626;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+
+        .btn-danger-sm:hover {
+            background: #fef2f2;
+        }
+
+        .btn-warn-sm {
+            padding: 6px 14px;
+            border-radius: 7px;
+            border: 1px solid #fde68a;
+            background: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #d97706;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+
+        .btn-warn-sm:hover {
+            background: #fffbeb;
+        }
+
+        .btn-info-sm {
+            padding: 6px 14px;
+            border-radius: 7px;
+            border: 1px solid #bfdbfe;
+            background: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2563eb;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+
+        .btn-info-sm:hover {
+            background: #eff6ff;
+        }
+
+        /* モーダルフッター */
+        .modal-foot {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+        }
+
+        .btn-cancel-sm {
+            padding: 7px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            padding: 7px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-save:hover {
+            background: #2563eb;
+        }
+
+        /* 確認モーダル */
+        .confirm-modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 1.75rem;
+            width: 380px;
+            max-width: 95vw;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .conf-ico {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .conf-ico.danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .conf-ico.warn {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* トースト */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 300;
+            pointer-events: none;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+        <main class="main-content">
+
+            <!-- ヘッダー -->
+            <div class="flex justify-between items-center mb-5">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1">アクセス管理</h1>
+                    <p class="text-muted text-sm">バックオフィスにアクセスできるアカウントを管理します</p>
+                </div>
+                <button class="btn-create" onclick="openCreate()">
+                    <i data-lucide="user-plus" width="16"></i> アカウント招待
+                </button>
+            </div>
+
+            <!-- 一覧 -->
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>担当者名</th>
+                            <th>メールアドレス</th>
+                            <th>ステータス</th>
+                            <th>最終ログイン</th>
+                            <th>招待日</th>
+                            <th style="text-align:right; padding-right:20px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-tbody"></tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- 招待（新規作成）モーダル -->
+    <div class="modal-overlay" id="invite-modal">
+        <div class="modal" style="width:440px;">
+            <div class="modal-hd">
+                <i data-lucide="mail" width="20" style="color:#3b82f6;"></i> アカウント招待
+            </div>
+            <div class="form-grp">
+                <label class="form-lbl">担当者名 <span style="color:#ef4444;">*</span></label>
+                <input type="text" class="form-inp" id="inv-name" placeholder="田中 健太">
+            </div>
+            <div class="form-grp">
+                <label class="form-lbl">メールアドレス <span style="color:#ef4444;">*</span></label>
+                <input type="email" class="form-inp" id="inv-email" placeholder="kentaro@example.com">
+                <div class="form-hint">招待メールを送信します。受信者がリンクからパスワードを設定します。</div>
+            </div>
+
+            <div class="perm-lbl"><i data-lucide="shield" width="14"></i> ページ別権限</div>
+            <table class="perm-tbl">
+                <thead>
+                    <tr>
+                        <th style="width:55%;">ページ</th>
+                        <th class="c" style="width:22%;">閲覧</th>
+                        <th class="c" style="width:22%;">編集</th>
+                    </tr>
+                </thead>
+                <tbody id="inv-perm-tbody"></tbody>
+            </table>
+
+            <div class="modal-foot">
+                <button class="btn-cancel-sm" onclick="closeModal('invite-modal')">キャンセル</button>
+                <button class="btn-save" onclick="sendInvite()">
+                    <i data-lucide="send" width="14"></i> 招待メールを送る
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 詳細・編集モーダル -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal">
+            <div class="modal-hd">
+                <i data-lucide="user" width="20" style="color:#3b82f6;"></i>
+                <span id="detail-modal-title">アカウント詳細</span>
+            </div>
+            <input type="hidden" id="detail-id">
+
+            <div class="form-row">
+                <div class="form-grp">
+                    <label class="form-lbl">担当者名 <span style="color:#ef4444;">*</span></label>
+                    <input type="text" class="form-inp" id="d-name">
+                </div>
+                <div class="form-grp">
+                    <label class="form-lbl">メールアドレス <span style="color:#ef4444;">*</span></label>
+                    <input type="email" class="form-inp" id="d-email">
+                </div>
+            </div>
+
+            <div class="perm-lbl"><i data-lucide="shield" width="14"></i> ページ別権限</div>
+            <table class="perm-tbl">
+                <thead>
+                    <tr>
+                        <th style="width:55%;">ページ</th>
+                        <th class="c" style="width:22%;">閲覧</th>
+                        <th class="c" style="width:22%;">編集</th>
+                    </tr>
+                </thead>
+                <tbody id="d-perm-tbody"></tbody>
+            </table>
+
+            <!-- 危険ゾーン -->
+            <div class="danger-zone" id="danger-zone">
+                <div class="danger-zone-title"><i data-lucide="alert-triangle" width="14"></i> アカウント操作</div>
+                <div class="danger-actions">
+                    <button class="btn-info-sm" id="btn-resend" onclick="resendInvite()">
+                        <i data-lucide="mail" width="13"></i> パスワードリセットメール送信
+                    </button>
+                    <button class="btn-warn-sm" id="btn-toggle-status" onclick="toggleStatusFromDetail()">
+                        <i data-lucide="pause-circle" width="13"></i> <span id="toggle-status-lbl">停止</span>
+                    </button>
+                    <button class="btn-danger-sm" onclick="deleteFromDetail()">
+                        <i data-lucide="trash-2" width="13"></i> 削除
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-foot">
+                <button class="btn-cancel-sm" onclick="closeModal('detail-modal')">キャンセル</button>
+                <button class="btn-save" onclick="saveDetail()">
+                    <i data-lucide="check" width="14"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認モーダル -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="confirm-modal">
+            <div class="conf-ico" id="conf-ico"><i data-lucide="alert-triangle" width="22"></i></div>
+            <div style="font-size:1rem; font-weight:800; color:#0f172a; margin-bottom:6px;" id="conf-title"></div>
+            <div style="font-size:0.85rem; color:#64748b; margin-bottom:1.5rem;" id="conf-msg"></div>
+            <div style="display:flex; gap:8px; justify-content:center;">
+                <button class="btn-cancel-sm" onclick="closeModal('confirm-modal')">キャンセル</button>
+                <button class="btn-save" id="conf-ok" onclick="confirmAction()">実行</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        // ===== ページ定義 =====
+        const pages = [
+            { id: 'dashboard', label: 'ダッシュボード' },
+            { id: 'accounts', label: 'アカウント管理' },
+            { id: 'customers', label: '顧客管理' },
+            { id: 'activity', label: 'アクティビティログ' },
+            { id: 'database', label: 'データベース' },
+            { id: 'admin', label: 'アクセス管理' },
+            { id: 'settings', label: '設定' },
+        ];
+        const viewPerms = () => Object.fromEntries(pages.map(p => [p.id, { view: true, edit: false }]));
+        const allPerms = () => Object.fromEntries(pages.map(p => [p.id, { view: true, edit: true }]));
+
+        // ===== ダミーデータ =====
+        let accounts = [
+            { id: 1, name: '田中 健太', email: 'kentaro.tanaka@posen.example', status: 'active', lastLogin: '2024-02-25 09:23', createdAt: '2022-04-01', perms: allPerms() },
+            { id: 2, name: '鈴木 咲', email: 'saki.suzuki@posen.example', status: 'active', lastLogin: '2024-02-24 14:05', createdAt: '2023-01-15', perms: { dashboard: { view: true, edit: false }, accounts: { view: true, edit: true }, customers: { view: true, edit: true }, activity: { view: true, edit: false }, database: { view: false, edit: false }, admin: { view: false, edit: false }, settings: { view: false, edit: false } } },
+            { id: 3, name: '山本 大輔', email: 'daisuke.yamamoto@posen.example', status: 'pending', lastLogin: '未ログイン', createdAt: '2024-02-20', perms: viewPerms() },
+            { id: 4, name: '佐藤 梨奈', email: 'rina.sato@posen.example', status: 'inactive', lastLogin: '2024-01-10 16:00', createdAt: '2023-08-20', perms: viewPerms() },
+        ];
+
+        const statusLabel = { active: '有効', inactive: '停止中', pending: '招待中' };
+        let pendingAction = null;
+        let currentDetailId = null;
+
+        // ===== テーブル描画 =====
+        function renderTable() {
+            document.getElementById('admin-tbody').innerHTML = accounts.map(a => `
+                <tr>
+                    <td style="font-weight:700; color:#1e293b;">${a.name}</td>
+                    <td style="font-size:0.82rem; color:#64748b;">${a.email}</td>
+                    <td><span class="status-dot ${a.status}">${statusLabel[a.status]}</span></td>
+                    <td style="color:#94a3b8; font-size:0.8rem; white-space:nowrap;">${a.lastLogin}</td>
+                    <td style="color:#94a3b8; font-size:0.8rem;">${a.createdAt}</td>
+                    <td style="text-align:right;">
+                        <button class="btn-sm primary" onclick="openDetail(${a.id})">
+                            <i data-lucide="pencil" width="12"></i> 詳細
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // ===== 権限tbody =====
+        function buildPermTbody(containerId, perms) {
+            document.getElementById(containerId).innerHTML = pages.map(p => `
+                <tr>
+                    <td>${p.label}</td>
+                    <td class="c"><input type="checkbox" id="${containerId}-pv-${p.id}" ${perms[p.id]?.view ? 'checked' : ''}
+                        onchange="if(!this.checked) document.getElementById('${containerId}-pe-${p.id}').checked=false"></td>
+                    <td class="c"><input type="checkbox" id="${containerId}-pe-${p.id}" ${perms[p.id]?.edit ? 'checked' : ''}
+                        onchange="if(this.checked) document.getElementById('${containerId}-pv-${p.id}').checked=true"></td>
+                </tr>
+            `).join('');
+        }
+        function collectPerms(containerId) {
+            return Object.fromEntries(pages.map(p => [p.id, {
+                view: !!document.getElementById(`${containerId}-pv-${p.id}`)?.checked,
+                edit: !!document.getElementById(`${containerId}-pe-${p.id}`)?.checked,
+            }]));
+        }
+
+        // ===== 招待モーダル =====
+        function openCreate() {
+            document.getElementById('inv-name').value = '';
+            document.getElementById('inv-email').value = '';
+            buildPermTbody('inv-perm-tbody', viewPerms());
+            document.getElementById('invite-modal').classList.add('open');
+            lucide.createIcons();
+        }
+        function sendInvite() {
+            const name = document.getElementById('inv-name').value.trim();
+            const email = document.getElementById('inv-email').value.trim();
+            if (!name || !email) { toast('⚠️ 担当者名とメールアドレスは必須です'); return; }
+            if (accounts.some(a => a.email === email)) { toast('⚠️ このメールアドレスは既に登録されています'); return; }
+            const perms = collectPerms('inv-perm-tbody');
+            accounts.push({ id: Date.now(), name, email, status: 'pending', lastLogin: '未ログイン', createdAt: new Date().toISOString().slice(0, 10), perms });
+            closeModal('invite-modal');
+            renderTable();
+            toast(`✉️ 「${name}」に招待メールを送信しました`);
+        }
+
+        // ===== 詳細モーダル =====
+        function openDetail(id) {
+            const a = accounts.find(x => x.id === id);
+            currentDetailId = id;
+            document.getElementById('detail-id').value = id;
+            document.getElementById('d-name').value = a.name;
+            document.getElementById('d-email').value = a.email;
+            document.getElementById('detail-modal-title').textContent = `${a.name} の詳細`;
+
+            // 停止/再開ボタン切り替え（innerHTML で安全に書き換え）
+            const toggleBtn = document.getElementById('btn-toggle-status');
+            if (a.status === 'inactive') {
+                toggleBtn.className = 'btn-info-sm';
+                toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> 再開`;
+            } else {
+                toggleBtn.className = 'btn-warn-sm';
+                toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg> 停止`;
+            }
+
+            buildPermTbody('d-perm-tbody', a.perms);
+            document.getElementById('detail-modal').classList.add('open');
+            lucide.createIcons();
+        }
+        function saveDetail() {
+            const id = currentDetailId;
+            const name = document.getElementById('d-name').value.trim();
+            const email = document.getElementById('d-email').value.trim();
+            if (!name || !email) { toast('⚠️ 担当者名とメールアドレスは必須です'); return; }
+            if (accounts.some(a => a.email === email && a.id !== id)) { toast('⚠️ このメールアドレスは既に使用中です'); return; }
+            const perms = collectPerms('d-perm-tbody');
+            const acc = accounts.find(a => a.id === id);
+            Object.assign(acc, { name, email, perms });
+            closeModal('detail-modal');
+            renderTable();
+            toast(`✅ 「${name}」の情報を更新しました`);
+        }
+
+        // ===== 詳細内の操作 =====
+        function resendInvite() {
+            const a = accounts.find(x => x.id === currentDetailId);
+            closeModal('detail-modal');
+            toast(`✉️ 「${a.name}」にパスワードリセットメールを送信しました`);
+        }
+        function toggleStatusFromDetail() {
+            const a = accounts.find(x => x.id === currentDetailId);
+            const newStatus = a.status === 'inactive' ? 'active' : 'inactive';
+            const lbl = newStatus === 'inactive' ? '停止' : '再開';
+            pendingAction = () => {
+                a.status = newStatus;
+                closeModal('detail-modal');
+                renderTable();
+                toast(`${newStatus === 'inactive' ? '⏸️' : '▶️'} 「${a.name}」を${lbl}しました`);
+            };
+            showConfirm('warn', `アカウントを${lbl}しますか？`, `「${a.name}」を${lbl}します。`, lbl, newStatus === 'inactive' ? '#d97706' : '#3b82f6');
+        }
+        function deleteFromDetail() {
+            const a = accounts.find(x => x.id === currentDetailId);
+            pendingAction = () => {
+                accounts = accounts.filter(x => x.id !== currentDetailId);
+                closeModal('detail-modal');
+                renderTable();
+                toast(`🗑️ 「${a.name}」を削除しました`);
+            };
+            showConfirm('danger', '削除しますか？', `「${a.name}」を削除します。この操作は取り消せません。`, '削除する', '#ef4444');
+        }
+
+        // ===== 確認モーダル =====
+        function showConfirm(type, title, msg, lbl, color) {
+            document.getElementById('conf-title').textContent = title;
+            document.getElementById('conf-msg').textContent = msg;
+            document.getElementById('conf-ico').className = `conf-ico ${type}`;
+            const btn = document.getElementById('conf-ok');
+            btn.innerHTML = lbl; btn.style.background = color;
+            document.getElementById('confirm-modal').classList.add('open');
+            lucide.createIcons();
+        }
+        function confirmAction() { if (pendingAction) { pendingAction(); pendingAction = null; } closeModal('confirm-modal'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        // ===== トースト =====
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg; el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3200);
+        }
+
+        lucide.createIcons();
+        renderTable();
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - 売上管理</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* KPIカード */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #cbd5e1;
+        }
+
+        .kpi-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .kpi-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 4px;
+            font-family: 'Inter', monospace;
+        }
+
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .kpi-up {
+            color: #16a34a;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .kpi-down {
+            color: #dc2626;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* グラフカード */
+        .chart-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* テーブル */
+        .billing-table-wrap {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .billing-table-toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            flex-wrap: wrap;
+        }
+
+        .billing-search {
+            flex: 1;
+            min-width: 180px;
+            padding: 7px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .billing-search:focus {
+            border-color: #3b82f6;
+        }
+
+        .billing-select {
+            padding: 7px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            background: white;
+            color: #475569;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .billing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+        }
+
+        .billing-table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 9px 14px;
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .billing-table thead th:hover {
+            background: #f1f5f9;
+        }
+
+        .billing-table tbody tr.main-row {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.1s;
+            cursor: pointer;
+        }
+
+        .billing-table tbody tr.main-row:hover {
+            background: #f8fafc;
+        }
+
+        .billing-table tbody td {
+            padding: 10px 8px 10px 14px;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        /* ツリー展開行 */
+        .billing-table tbody tr.detail-row td {
+            padding: 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .detail-card {
+            background-color: #f8fafc;
+            padding: 16px 24px 16px 40px;
+            border-left: 3px solid #3b82f6;
+            margin-bottom: 4px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .detail-item-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .detail-item-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .toggle-icon {
+            transition: transform 0.2s;
+            color: #94a3b8;
+        }
+
+        .toggle-icon.open {
+            transform: rotate(90deg);
+        }
+
+        /* バッジ */
+        .pay-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .pay-badge.paid {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .pay-badge.pending {
+            background: #fef9c3;
+            color: #92400e;
+        }
+
+        .pay-badge.unpaid {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .method-badge.mf {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .method-badge.square {
+            background: #f3e8ff;
+            color: #7e22ce;
+        }
+
+        .method-badge.bank {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* エクスポートボタン */
+        .btn-csv {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-csv:hover {
+            background: #f1f5f9;
+        }
+
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: white;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <!-- ヘッダー -->
+            <div class="flex justify-between items-center mb-5">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1">売上管理</h1>
+                    <p class="text-muted text-sm">全顧客の請求・入金状況を管理します</p>
+                </div>
+                <button class="btn-csv" onclick="exportCSV()">
+                    <i data-lucide="download" width="15"></i> CSV出力
+                </button>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card" onclick="filterByKpi('current')">
+                    <div class="kpi-label"><i data-lucide="trending-up" width="13"></i> 今月の売上</div>
+                    <div class="kpi-value" id="kpi-current-rev">¥0</div>
+                    <div class="kpi-sub"><span class="kpi-up" id="kpi-current-comp">▲ 0%</span> 先月比</div>
+                </div>
+                <div class="kpi-card" onclick="filterByKpi('paid')">
+                    <div class="kpi-label" style="color:#16a34a;"><i data-lucide="circle-check" width="13"></i> 入金済み
+                    </div>
+                    <div class="kpi-value" style="color:#16a34a;" id="kpi-paid-amount">¥0</div>
+                    <div class="kpi-sub" id="kpi-paid-count">0件 完了</div>
+                </div>
+                <div class="kpi-card" onclick="filterByKpi('pending')">
+                    <div class="kpi-label" style="color:#d97706;"><i data-lucide="clock" width="13"></i> 入金待ち</div>
+                    <div class="kpi-value" style="color:#d97706;" id="kpi-pending-amount">¥0</div>
+                    <div class="kpi-sub" id="kpi-pending-count">0件 未確認</div>
+                </div>
+                <div class="kpi-card" onclick="filterByKpi('unpaid')">
+                    <div class="kpi-label" style="color:#dc2626;"><i data-lucide="alert-circle" width="13"></i> 未入金
+                    </div>
+                    <div class="kpi-value" style="color:#dc2626;" id="kpi-unpaid-amount">¥0</div>
+                    <div class="kpi-sub" id="kpi-unpaid-count">0件 期限超過</div>
+                </div>
+            </div>
+
+            <!-- 月別グラフ -->
+            <div class="chart-card">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="chart-title mb-0">月別売上推移</div>
+                    <select class="billing-select" id="chart-period" onchange="updateChart()">
+                        <option value="12">直近12ヶ月</option>
+                        <option value="6">直近6ヶ月</option>
+                        <option value="3">直近3ヶ月</option>
+                    </select>
+                </div>
+                <canvas id="revenue-chart" height="80"></canvas>
+            </div>
+
+            <!-- 請求一覧 -->
+            <div class="billing-table-wrap">
+                <div class="billing-table-toolbar">
+                    <input type="text" class="billing-search" id="search-input" placeholder="🔍 顧客名・請求書No・項目で検索..."
+                        oninput="applyFilter()">
+                    <select class="billing-select" id="filter-status" onchange="applyFilter()">
+                        <option value="">ステータス：すべて</option>
+                        <option value="paid">入金済み</option>
+                        <option value="pending">入金待ち</option>
+                        <option value="unpaid">未入金</option>
+                    </select>
+                    <select class="billing-select" id="filter-method" onchange="applyFilter()">
+                        <option value="">請求形式：すべて</option>
+                        <option value="MF請求">MF請求</option>
+                        <option value="Square">Square</option>
+                        <option value="銀行振込">銀行振込</option>
+                    </select>
+                    <select class="billing-select" id="filter-month" onchange="applyFilter()">
+                        <option value="">期間：すべて</option>
+                        <option value="2024-03">2024年3月</option>
+                        <option value="2024-02">2024年2月</option>
+                        <option value="2024-01">2024年1月</option>
+                        <option value="2023-12">2023年12月</option>
+                    </select>
+                </div>
+
+                <table class="billing-table" id="billing-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"></th>
+                            <th onclick="sortTable('date')">請求日 <span id="sort-date"></span></th>
+                            <th onclick="sortTable('customer')">顧客名 <span id="sort-customer"></span></th>
+                            <th>請求形式</th>
+                            <th>請求書No</th>
+                            <th>項目</th>
+                            <th>備考</th>
+                            <th onclick="sortTable('amount')" style="text-align:right;">請求額（税込）<span
+                                    id="sort-amount"></span></th>
+                            <th>入金ステータス</th>
+                            <th>入金日</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billing-tbody"></tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span id="record-count"></span>
+                    <span id="total-amount" style="font-weight:700; color:#1e293b;"></span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 当月を24年3月と仮定
+        const currentMonth = '2024-03';
+        const lastMonth = '2024-02';
+
+        const allInvoices = [
+            { id: 1, date: '2024-03-01', no: 'INV-0130', customer: '医療法人社団 青山会', method: 'MF請求', items: '利用料（一括）', remarks: '年間一括払い', amount: 660000, amountExTax: 600000, listPrice: 720000, discount: 60000, salesMonth: '12ヶ月 (2024年3月〜2025年2月)', status: 'pending', paidDate: '' },
+            { id: 2, date: '2024-03-01', no: 'INV-0129', customer: '株式会社 美容メディカル', method: 'Square', items: '利用料（月額）', remarks: '3月分基本料', amount: 110000, amountExTax: 100000, listPrice: 100000, discount: 0, salesMonth: '1ヶ月 (2024年3月)', status: 'pending', paidDate: '' },
+            { id: 3, date: '2024-03-01', no: 'INV-0128', customer: '医療法人 東京皮膚科グループ', method: '銀行振込', items: '初期費用＋オプション', remarks: '導入セット一式', amount: 330000, amountExTax: 300000, listPrice: 300000, discount: 0, salesMonth: '1ヶ月 (2024年3月)', status: 'unpaid', paidDate: '' },
+            { id: 4, date: '2024-02-01', no: 'INV-0127', customer: '医療法人社団 青山会', method: 'MF請求', items: '利用料（月額）', remarks: '2月分基本料', amount: 55000, amountExTax: 50000, listPrice: 50000, discount: 0, salesMonth: '1ヶ月 (2024年2月)', status: 'paid', paidDate: '2024-02-10' },
+            { id: 5, date: '2024-02-01', no: 'INV-0126', customer: '医療法人 桜クリニック', method: 'Square', items: 'オプション費用', remarks: 'カルテ連携プラグイン', amount: 22000, amountExTax: 20000, listPrice: 20000, discount: 0, salesMonth: '1ヶ月 (2024年2月)', status: 'paid', paidDate: '2024-02-05' },
+            { id: 6, date: '2024-02-01', no: 'INV-0125', customer: '株式会社 美容メディカル', method: 'MF請求', items: '利用料（月額）', remarks: '2月分基本料', amount: 110000, amountExTax: 100000, listPrice: 100000, discount: 0, salesMonth: '1ヶ月 (2024年2月)', status: 'paid', paidDate: '2024-02-12' },
+            { id: 7, date: '2024-02-01', no: 'INV-0124', customer: '医療法人社団 みなとクリニック', method: '銀行振込', items: '利用料（月額）', remarks: '2月分基本料', amount: 55000, amountExTax: 50000, listPrice: 50000, discount: 0, salesMonth: '1ヶ月 (2024年2月)', status: 'paid', paidDate: '2024-02-08' },
+            { id: 8, date: '2024-01-01', no: 'INV-0120', customer: '医療法人社団 青山会', method: 'Square', items: '利用料（月額）', remarks: '1月分基本料', amount: 55000, amountExTax: 50000, listPrice: 50000, discount: 0, salesMonth: '1ヶ月 (2024年1月)', status: 'paid', paidDate: '2024-01-10' },
+            { id: 9, date: '2024-01-01', no: 'INV-0119', customer: '医療法人 桜クリニック', method: 'MF請求', items: '利用料（月額）', remarks: '1月分基本料', amount: 55000, amountExTax: 50000, listPrice: 50000, discount: 0, salesMonth: '1ヶ月 (2024年1月)', status: 'paid', paidDate: '2024-01-11' },
+            { id: 10, date: '2023-12-01', no: 'INV-0110', customer: '株式会社 美容メディカル', method: 'MF請求', items: '利用料（月額）', remarks: '12月分基本料', amount: 110000, amountExTax: 100000, listPrice: 100000, discount: 0, salesMonth: '1ヶ月 (2023年12月)', status: 'paid', paidDate: '2023-12-11' },
+        ];
+
+        let sortKey = 'date';
+        let sortAsc = false;
+        let filtered = [...allInvoices];
+        
+        let expandedRows = new Set(); // 展開中の行ID
+
+        // ===== KPI計算 =====
+        function calculateKpi() {
+            // 今月の売上 (2024-03のもの)
+            const currentTotal = allInvoices.filter(i => i.date.startsWith(currentMonth)).reduce((sum, i) => sum + i.amount, 0);
+            const lastTotal = allInvoices.filter(i => i.date.startsWith(lastMonth)).reduce((sum, i) => sum + i.amount, 0);
+            
+            document.getElementById('kpi-current-rev').textContent = '¥' + currentTotal.toLocaleString();
+            
+            const compEl = document.getElementById('kpi-current-comp');
+            if (lastTotal > 0) {
+                const diff = ((currentTotal - lastTotal) / lastTotal) * 100;
+                compEl.className = diff >= 0 ? 'kpi-up' : 'kpi-down';
+                compEl.textContent = (diff >= 0 ? '▲ ' : '▼ ') + Math.abs(diff).toFixed(1) + '%';
+            } else {
+                compEl.textContent = '-';
+            }
+
+            // ステータス別
+            const paid = allInvoices.filter(i => i.status === 'paid');
+            const pending = allInvoices.filter(i => i.status === 'pending');
+            const unpaid = allInvoices.filter(i => i.status === 'unpaid');
+
+            document.getElementById('kpi-paid-amount').textContent = '¥' + paid.reduce((s, i) => s + i.amount, 0).toLocaleString();
+            document.getElementById('kpi-paid-count').textContent = `${paid.length}件 完了`;
+            
+            document.getElementById('kpi-pending-amount').textContent = '¥' + pending.reduce((s, i) => s + i.amount, 0).toLocaleString();
+            document.getElementById('kpi-pending-count').textContent = `${pending.length}件 未確認`;
+            
+            document.getElementById('kpi-unpaid-amount').textContent = '¥' + unpaid.reduce((s, i) => s + i.amount, 0).toLocaleString();
+            document.getElementById('kpi-unpaid-count').textContent = `${unpaid.length}件 期限超過`;
+        }
+
+        // ===== KPIクリックでフィルタ ======
+        function filterByKpi(type) {
+            const statusel = document.getElementById('filter-status');
+            const monthel = document.getElementById('filter-month');
+            
+            statusel.value = '';
+            monthel.value = '';
+
+            if (type === 'current') {
+                monthel.value = currentMonth;
+            } else if (type === 'paid') {
+                statusel.value = 'paid';
+            } else if (type === 'pending') {
+                statusel.value = 'pending';
+            } else if (type === 'unpaid') {
+                statusel.value = 'unpaid';
+            }
+
+            applyFilter();
+            document.querySelector('.billing-table-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+
+        // ===== フィルター =====
+        function applyFilter() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const status = document.getElementById('filter-status').value;
+            const method = document.getElementById('filter-method').value;
+            const month = document.getElementById('filter-month').value;
+
+            filtered = allInvoices.filter(inv => {
+                const matchQ = !q || inv.no.toLowerCase().includes(q) || inv.customer.toLowerCase().includes(q) || inv.items.toLowerCase().includes(q);
+                const matchS = !status || inv.status === status;
+                const matchM = !method || inv.method === method;
+                const matchMo = !month || inv.date.startsWith(month);
+                return matchQ && matchS && matchM && matchMo;
+            });
+            expandedRows.clear(); // 検索時はすべて閉じる
+            renderTable();
+        }
+
+        // ===== ソート =====
+        function sortTable(key) {
+            if (sortKey === key) { sortAsc = !sortAsc; } else { sortKey = key; sortAsc = true; }
+            ['date', 'customer', 'amount'].forEach(k => {
+                const el = document.getElementById('sort-' + k);
+                if (el) el.textContent = '';
+            });
+            const el = document.getElementById('sort-' + key);
+            if (el) el.textContent = sortAsc ? ' ▲' : ' ▼';
+            applyFilter();
+        }
+
+        // ===== 詳細行(ツリー)のトグル =====
+        function toggleDetail(id) {
+            if (expandedRows.has(id)) {
+                expandedRows.delete(id);
+            } else {
+                expandedRows.add(id);
+            }
+            renderTable(); // もしくはDOM直接操作でも良いがシンプルに再描画
+        }
+
+        // ===== テーブル描画 =====
+        function renderTable() {
+            const sorted = [...filtered].sort((a, b) => {
+                let va = a[sortKey === 'customer' ? 'customer' : sortKey];
+                let vb = b[sortKey === 'customer' ? 'customer' : sortKey];
+                if (sortKey === 'amount') { va = Number(va); vb = Number(vb); }
+                if (va < vb) return sortAsc ? -1 : 1;
+                if (va > vb) return sortAsc ? 1 : -1;
+                return 0;
+            });
+
+            const methodCls = { 'MF請求': 'mf', 'Square': 'square', '銀行振込': 'bank' };
+            const statusMap = { paid: ['paid', '入金済み'], pending: ['pending', '入金待ち'], unpaid: ['unpaid', '未入金'] };
+
+            let html = '';
+            sorted.forEach(inv => {
+                const [sc, sl] = statusMap[inv.status] || ['', ''];
+                const mc = methodCls[inv.method] || '';
+                const isOpen = expandedRows.has(inv.id);
+                
+                // メイン行
+                html += `
+                <tr class="main-row" onclick="toggleDetail(${inv.id})">
+                    <td style="text-align:center;"><i data-lucide="chevron-right" class="toggle-icon ${isOpen ? 'open' : ''}" width="16"></i></td>
+                    <td style="color:#94a3b8; font-size:0.8rem; white-space:nowrap;">${inv.date}</td>
+                    <td style="font-weight:600; color:#1e293b;">${inv.customer}</td>
+                    <td><span class="method-badge ${mc}">${inv.method}</span></td>
+                    <td style="font-family:monospace; font-size:0.8rem; color:#64748b;">${inv.no}</td>
+                    <td style="font-size:0.82rem; color:#475569;">${inv.items}</td>
+                    <td style="font-size:0.82rem; color:#64748b; max-width: 150px; overflow:hidden; text-overflow:ellipsis;">${inv.remarks}</td>
+                    <td style="text-align:right; font-family:monospace; font-weight:700;">¥${inv.amount.toLocaleString()}</td>
+                    <td><span class="pay-badge ${sc}">${sl}</span></td>
+                    <td style="font-size:0.8rem; color:#64748b;">${inv.paidDate || '—'}</td>
+                </tr>`;
+                
+                // 詳細行
+                if (isOpen) {
+                    html += `
+                    <tr class="detail-row">
+                        <td colspan="10">
+                            <div class="detail-card">
+                                <div>
+                                    <div class="detail-item-label">売上計上月</div>
+                                    <div class="detail-item-value">${inv.salesMonth}</div>
+                                </div>
+                                <div>
+                                    <div class="detail-item-label">定価</div>
+                                    <div class="detail-item-value">¥${inv.listPrice.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="detail-item-label">値引</div>
+                                    <div class="detail-item-value text-danger">¥${inv.discount.toLocaleString()}</div>
+                                </div>
+                                <div>
+                                    <div class="detail-item-label">請求額（税抜）</div>
+                                    <div class="detail-item-value">¥${inv.amountExTax.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+                }
+            });
+
+            document.getElementById('billing-tbody').innerHTML = html;
+
+            const total = sorted.reduce((s, i) => s + i.amount, 0);
+            document.getElementById('record-count').textContent = `${sorted.length} 件`;
+            document.getElementById('total-amount').textContent = `合計 ¥${total.toLocaleString()}`;
+            
+            lucide.createIcons(); // 新規描画したアイコンを適用
+        }
+
+        // ===== CSV出力 =====
+        function exportCSV() {
+            const headers = ['請求日', '請求書No', '顧客名', '請求形式', '項目', '備考', '定価', '値引', '請求額（税抜）', '請求額（税込）', '売上計上月', '入金ステータス', '入金日'];
+            const statusLabel = { paid: '入金済み', pending: '入金待ち', unpaid: '未入金' };
+            const rows = filtered.map(inv => [
+                inv.date, inv.no, inv.customer, inv.method, inv.items, inv.remarks,
+                inv.listPrice, inv.discount, inv.amountExTax, inv.amount, inv.salesMonth,
+                statusLabel[inv.status] || '', inv.paidDate
+            ]);
+            const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `請求一覧_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+        }
+
+        // ===== グラフ =====
+        let chartInstance = null;
+        
+        // 全月データ (仮)
+        const allMonthsLabels = ['23年4月','5月','6月','7月','8月','9月','10月','11月','12月','24年1月','2月','3月'];
+        const allRevenues = [220000, 275000, 275000, 275000, 275000, 330000, 275000, 275000, 305000, 330000, 330000, 1100000];
+        const allPaids = [220000, 275000, 275000, 275000, 275000, 330000, 275000, 275000, 305000, 330000, 275000, 0];
+
+        function updateChart() {
+            const period = parseInt(document.getElementById('chart-period').value);
+            const labels = allMonthsLabels.slice(-period);
+            const revData = allRevenues.slice(-period);
+            const paidData = allPaids.slice(-period);
+
+            const ctx = document.getElementById('revenue-chart');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '売上（税込）',
+                        data: revData,
+                        backgroundColor: 'rgba(59,130,246,0.15)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        order: 2
+                    }, {
+                        label: '入金済み',
+                        data: paidData,
+                        type: 'line',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#10b981',
+                        tension: 0.3,
+                        fill: false,
+                        order: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: { 
+                        legend: { position: 'top', labels: { font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: v => '¥' + (v / 10000).toFixed(0) + '万',
+                                font: { size: 11 }
+                            },
+                            grid: { color: '#f1f5f9' },
+                            beginAtZero: true
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ===== 初期化 =====
+        calculateKpi();
+        updateChart(); // グラフ初回描画
+        applyFilter(); // テーブル初回描画
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

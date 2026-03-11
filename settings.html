@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - 設定</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/utils.js"></script>
+    <style>
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .settings-sidenav {
+            background: #fff;
+            border: 1px solid var(--color-slate-100, #e2e8f0);
+            border-radius: 12px;
+            overflow: hidden;
+            position: sticky;
+            top: 0;
+        }
+
+        .settings-sidenav-title {
+            padding: 14px 16px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-slate-400, #94a3b8);
+            border-bottom: 1px solid var(--color-slate-100, #e2e8f0);
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            font-size: 0.875rem;
+            color: var(--color-slate-600, #475569);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            transition: background 0.12s, color 0.12s;
+            border-left: 3px solid transparent;
+        }
+
+        .settings-nav-item:hover {
+            background: var(--color-slate-50, #f8fafc);
+        }
+
+        .settings-nav-item.active {
+            background: var(--color-primary-50, #eff6ff);
+            color: var(--color-primary-700, #1d4ed8);
+            font-weight: 600;
+            border-left-color: var(--color-primary-600, #2563eb);
+        }
+
+        .master-section {
+            display: none;
+        }
+
+        .master-section.active {
+            display: block;
+        }
+
+        .master-card {
+            background: #fff;
+            border: 1px solid var(--color-slate-100, #e2e8f0);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .master-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--color-slate-100, #e2e8f0);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .master-card-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .master-card-header p {
+            font-size: 0.8rem;
+            color: var(--color-slate-500, #64748b);
+            margin-top: 2px;
+        }
+
+        .master-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .master-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 20px;
+            border-bottom: 1px solid var(--color-slate-50, #f8fafc);
+            transition: background 0.1s;
+            position: relative;
+        }
+
+        .master-item:last-child {
+            border-bottom: none;
+        }
+
+        .master-item:hover {
+            background: var(--color-slate-50, #f8fafc);
+        }
+
+        .drag-handle {
+            color: var(--color-slate-300, #cbd5e1);
+            cursor: grab;
+            flex-shrink: 0;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .item-badge-preview {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .item-label-text {
+            flex: 1;
+            font-size: 0.875rem;
+            color: var(--color-slate-800);
+            font-weight: 500;
+            cursor: default;
+        }
+
+        /* チップ型クリックエリア */
+        .item-chip-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 4px 4px 4px 4px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            background: none;
+            transition: background 0.12s, border-color 0.12s;
+            flex: 1;
+        }
+
+        .item-chip-btn:hover {
+            background: #f1f5f9;
+            border-color: var(--color-slate-200);
+        }
+
+        /* ポップオーバー */
+        .color-popover {
+            position: absolute;
+            left: 40px;
+            top: calc(100% - 4px);
+            z-index: 999;
+            background: #fff;
+            border: 1px solid var(--color-slate-200, #e2e8f0);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            width: 220px;
+            padding: 0;
+            overflow: hidden;
+            display: none;
+            animation: popoverIn 0.12s ease;
+        }
+
+        .color-popover.open {
+            display: block;
+        }
+
+        @keyframes popoverIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .popover-input-wrap {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .popover-input {
+            width: 100%;
+            border: 1.5px solid var(--color-primary-400, #60a5fa);
+            border-radius: 7px;
+            padding: 7px 10px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            color: var(--color-slate-800);
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .popover-delete-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 9px 14px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--color-danger, #ef4444);
+            transition: background 0.1s;
+            text-align: left;
+        }
+
+        .popover-delete-btn:hover {
+            background: #fff1f2;
+        }
+
+        .popover-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 2px 0;
+        }
+
+        .popover-color-label {
+            padding: 7px 14px 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--color-slate-400);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .popover-color-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: background 0.1s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .popover-color-item:hover {
+            background: #f8fafc;
+        }
+
+        .popover-color-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            border: 1px solid rgba(0, 0, 0, 0.07);
+        }
+
+        .popover-color-name {
+            font-size: 0.875rem;
+            color: var(--color-slate-700);
+            flex: 1;
+        }
+
+        .popover-color-check {
+            color: var(--color-primary-600);
+            flex-shrink: 0;
+        }
+
+        .item-delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-slate-300, #cbd5e1);
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+            flex-shrink: 0;
+        }
+
+        .item-delete-btn:hover {
+            color: var(--color-danger, #ef4444);
+            background: #fee2e2;
+        }
+
+        .add-item-area {
+            padding: 12px 20px;
+            border-top: 1px solid var(--color-slate-100, #e2e8f0);
+            background: var(--color-slate-50, #f8fafc);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .add-item-input {
+            flex: 1;
+            border: 1px solid var(--color-slate-200, #e2e8f0);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: #fff;
+            transition: border-color 0.15s;
+        }
+
+        .add-item-input:focus {
+            outline: none;
+            border-color: var(--color-primary-400, #60a5fa);
+        }
+
+        /* 代理店テーブル */
+        .agency-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .agency-table th {
+            text-align: left;
+            padding: 10px 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--color-slate-400, #94a3b8);
+            background: var(--color-slate-50, #f8fafc);
+            border-bottom: 1px solid var(--color-slate-100, #e2e8f0);
+        }
+
+        .agency-table td {
+            padding: 13px 20px;
+            border-bottom: 1px solid var(--color-slate-50, #f8fafc);
+            font-size: 0.875rem;
+        }
+
+        .agency-table-input {
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.875rem;
+            background: transparent;
+            width: 100%;
+            font-family: inherit;
+            color: var(--color-slate-800);
+        }
+
+        .agency-table-input:hover {
+            border-color: var(--color-slate-200);
+            background: #f8fafc;
+        }
+
+        .agency-table-input:focus {
+            outline: none;
+            border-color: var(--color-primary-400);
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold mb-1">設定</h1>
+                <p class="text-muted text-sm">システムのマスターデータを管理します</p>
+            </div>
+
+            <div class="settings-layout">
+                <nav class="settings-sidenav">
+                    <div class="settings-sidenav-title">マスターデータ</div>
+                    <button class="settings-nav-item active" onclick="showSection('status', this)">
+                        <i data-lucide="tag" width="16"></i> 顧客ステータス
+                    </button>
+                    <button class="settings-nav-item" onclick="showSection('plan', this)">
+                        <i data-lucide="layers" width="16"></i> 顧客プラン
+                    </button>
+                    <button class="settings-nav-item" onclick="showSection('agency', this)">
+                        <i data-lucide="handshake" width="16"></i> 代理店
+                    </button>
+                </nav>
+
+                <div>
+                    <!-- 顧客ステータス -->
+                    <div id="section-status" class="master-section active">
+                        <div class="master-card">
+                            <div class="master-card-header">
+                                <div>
+                                    <h2>顧客ステータス</h2>
+                                    <p>バッジをクリックしてラベル名・カラーを編集できます</p>
+                                </div>
+                            </div>
+                            <ul class="master-list" id="status-list"></ul>
+                            <div class="add-item-area">
+                                <input type="text" id="status-add-input" class="add-item-input"
+                                    placeholder="新しいステータスを入力...">
+                                <button class="btn btn-primary text-sm" onclick="addStatusItem()">
+                                    <i data-lucide="plus" width="14"></i> 追加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 顧客プラン -->
+                    <div id="section-plan" class="master-section">
+                        <div class="master-card">
+                            <div class="master-card-header">
+                                <div>
+                                    <h2>顧客プラン</h2>
+                                    <p>バッジをクリックしてラベル名・カラーを編集できます</p>
+                                </div>
+                            </div>
+                            <ul class="master-list" id="plan-list"></ul>
+                            <div class="add-item-area">
+                                <input type="text" id="plan-add-input" class="add-item-input"
+                                    placeholder="新しいプランを入力...">
+                                <button class="btn btn-primary text-sm" onclick="addPlanItem()">
+                                    <i data-lucide="plus" width="14"></i> 追加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 代理店 -->
+                    <div id="section-agency" class="master-section">
+                        <div class="master-card">
+                            <div class="master-card-header">
+                                <div>
+                                    <h2>代理店</h2>
+                                    <p>顧客に紐付ける代理店情報を管理します</p>
+                                </div>
+                                <button class="btn btn-primary text-sm" onclick="addAgencyRow()">
+                                    <i data-lucide="plus" width="14"></i> 代理店を追加
+                                </button>
+                            </div>
+                            <div style="overflow-x: auto;">
+                                <table class="agency-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40px;"></th>
+                                            <th>代理店名</th>
+                                            <th>担当者</th>
+                                            <th>連絡先</th>
+                                            <th style="width:80px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="agency-list"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- カラーポップオーバー（共通・DOM上に一つ） -->
+    <div id="color-popover" class="color-popover">
+        <div class="popover-input-wrap">
+            <input type="text" id="popover-label-input" class="popover-input" placeholder="ラベル名を入力">
+        </div>
+        <button class="popover-delete-btn" id="popover-delete-btn">
+            <i data-lucide="trash-2" width="15"></i> 削除
+        </button>
+        <div class="popover-divider"></div>
+        <div class="popover-color-label">カラー</div>
+        <div id="popover-color-list"></div>
+    </div>
+
+    <script>
+        // ===== カラー定義 =====
+        const COLOR_DEFS = [
+            { key: 'default', name: 'デフォルト', bg: '#f1f5f9', text: '#475569' },
+            { key: 'gray', name: 'グレー', bg: '#e2e8f0', text: '#334155' },
+            { key: 'brown', name: 'ブラウン', bg: '#fdf2ee', text: '#92400e' },
+            { key: 'orange', name: 'オレンジ', bg: '#ffedd5', text: '#c2410c' },
+            { key: 'yellow', name: '黄', bg: '#fef9c3', text: '#a16207' },
+            { key: 'green', name: '緑', bg: '#dcfce7', text: '#15803d' },
+            { key: 'blue', name: '青', bg: '#dbeafe', text: '#1d4ed8' },
+            { key: 'purple', name: '紫', bg: '#f3e8ff', text: '#7e22ce' },
+            { key: 'pink', name: 'ピンク', bg: '#fce7f3', text: '#be185d' },
+            { key: 'red', name: '赤', bg: '#fee2e2', text: '#b91c1c' },
+        ];
+
+        // ===== データ =====
+        let statuses = [
+            { id: 1, label: 'リード獲得', colorKey: 'yellow' },
+            { id: 2, label: '利用準備中', colorKey: 'blue' },
+            { id: 3, label: '利用中', colorKey: 'green' },
+            { id: 4, label: '解約', colorKey: 'red' },
+            { id: 5, label: '無効', colorKey: 'default' },
+            { id: 6, label: 'パートナーユーザー', colorKey: 'purple' },
+            { id: 7, label: '内部ユーザー', colorKey: 'pink' },
+        ];
+        let plans = [
+            { id: 1, label: 'Posen月額プラン', colorKey: 'blue' },
+            { id: 2, label: 'Posen一括プラン', colorKey: 'blue' },
+            { id: 3, label: '月々プラン', colorKey: 'yellow' },
+            { id: 4, label: 'Posen/FIDセットプラン', colorKey: 'purple' },
+        ];
+        let agencies = [
+            { id: 1, name: '株式会社サンプル代理店', contact: '鈴木 一郎', tel: '03-1234-5678' },
+            { id: 2, name: 'FIDパートナーズ株式会社', contact: '高橋 花子', tel: '06-9876-5432' },
+        ];
+        let nextId = 100;
+
+        // ===== ポップオーバー制御 =====
+        let currentPopoverContext = null; // { type: 'status'|'plan', id }
+
+        function getColor(colorKey) {
+            return COLOR_DEFS.find(c => c.key === colorKey) || COLOR_DEFS[0];
+        }
+
+        function openPopover(anchorEl, type, id) {
+            const data = (type === 'status' ? statuses : plans).find(x => x.id === id);
+            if (!data) return;
+
+            currentPopoverContext = { type, id };
+            const popover = document.getElementById('color-popover');
+
+            // ラベル入力
+            const labelInput = document.getElementById('popover-label-input');
+            labelInput.value = data.label;
+
+            // 削除ボタン
+            document.getElementById('popover-delete-btn').onclick = () => {
+                closePopover();
+                if (type === 'status') deleteStatus(id);
+                else deletePlan(id);
+            };
+
+            // カラーリスト
+            const colorList = document.getElementById('popover-color-list');
+            colorList.innerHTML = '';
+            COLOR_DEFS.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'popover-color-item';
+                btn.innerHTML = `
+                    <span class="popover-color-swatch" style="background:${c.bg}; border-color:rgba(0,0,0,0.08);"></span>
+                    <span class="popover-color-name">${c.name}</span>
+                    ${data.colorKey === c.key ? '<i data-lucide="check" width="14" class="popover-color-check"></i>' : ''}
+                `;
+                btn.onclick = () => {
+                    if (type === 'status') {
+                        const s = statuses.find(x => x.id === id);
+                        if (s) { s.colorKey = c.key; renderStatuses(); }
+                    } else {
+                        const p = plans.find(x => x.id === id);
+                        if (p) { p.colorKey = c.key; renderPlans(); }
+                    }
+                    // ポップオーバー内チェックを更新
+                    colorList.querySelectorAll('.popover-color-check').forEach(el => el.remove());
+                    btn.querySelector('.popover-color-name').insertAdjacentHTML('afterend',
+                        '<i data-lucide="check" width="14" class="popover-color-check"></i>');
+                    lucide.createIcons();
+                };
+                colorList.appendChild(btn);
+            });
+
+            // ポップオーバーを開く（アンカー位置に合わせる）
+            const rect = anchorEl.getBoundingClientRect();
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            popover.style.top = (rect.bottom + scrollTop + 4) + 'px';
+            popover.style.left = (rect.left) + 'px';
+            popover.classList.add('open');
+            lucide.createIcons();
+            labelInput.focus();
+            labelInput.select();
+        }
+
+        function closePopover() {
+            const popover = document.getElementById('color-popover');
+            if (!popover.classList.contains('open')) return;
+
+            // ラベルを確定
+            if (currentPopoverContext) {
+                const { type, id } = currentPopoverContext;
+                const newLabel = document.getElementById('popover-label-input').value.trim();
+                if (newLabel) {
+                    const arr = type === 'status' ? statuses : plans;
+                    const item = arr.find(x => x.id === id);
+                    if (item && item.label !== newLabel) {
+                        item.label = newLabel;
+                        if (type === 'status') renderStatuses();
+                        else renderPlans();
+                    }
+                }
+            }
+            popover.classList.remove('open');
+            currentPopoverContext = null;
+        }
+
+        // 外側クリックで閉じる
+        document.addEventListener('click', (e) => {
+            const popover = document.getElementById('color-popover');
+            if (!popover.classList.contains('open')) return;
+            if (!popover.contains(e.target) && !e.target.closest('.item-chip-btn')) {
+                closePopover();
+            }
+        });
+
+        // Escで閉じる
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePopover();
+            if (e.key === 'Enter') {
+                if (document.activeElement.id === 'status-add-input') addStatusItem();
+                if (document.activeElement.id === 'plan-add-input') addPlanItem();
+                if (document.activeElement.id === 'popover-label-input') closePopover();
+            }
+        });
+
+        // ===== ステータス描画 =====
+        function renderStatuses() {
+            const list = document.getElementById('status-list');
+            list.innerHTML = '';
+            statuses.forEach(s => {
+                const col = getColor(s.colorKey);
+                const li = document.createElement('li');
+                li.className = 'master-item';
+                li.dataset.id = s.id;
+                li.innerHTML = `
+                    <span class="drag-handle"><i data-lucide="grip-vertical" width="14"></i></span>
+                    <button class="item-chip-btn" onclick="openPopover(this, 'status', ${s.id})" type="button">
+                        <span class="item-badge-preview" style="background:${col.bg}; color:${col.text};">${escapeHtml(s.label)}</span>
+                        <span style="font-size:0.75rem; color:var(--color-slate-400); margin-left:2px;"><i data-lucide="pencil" width="12"></i></span>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        function deleteStatus(id) {
+            showConfirmModal({
+                title: 'ステータスの削除',
+                message: 'このステータスを削除しますか？<br>削除後は元に戻せません。',
+                confirmText: '削除する', confirmColor: 'danger',
+                onConfirm: async () => {
+                    statuses = statuses.filter(x => x.id !== id);
+                    renderStatuses();
+                    showToast('ステータスを削除しました', 'default');
+                }
+            });
+        }
+
+        function addStatusItem() {
+            const input = document.getElementById('status-add-input');
+            const label = input.value.trim();
+            if (!label) { showToast('ステータス名を入力してください', 'default'); return; }
+            statuses.push({ id: nextId++, label, colorKey: 'default' });
+            input.value = '';
+            renderStatuses();
+            showToast(`「${label}」を追加しました`, 'success');
+        }
+
+        // ===== プラン描画 =====
+        function renderPlans() {
+            const list = document.getElementById('plan-list');
+            list.innerHTML = '';
+            plans.forEach(p => {
+                const col = getColor(p.colorKey);
+                const li = document.createElement('li');
+                li.className = 'master-item';
+                li.dataset.id = p.id;
+                li.innerHTML = `
+                    <span class="drag-handle"><i data-lucide="grip-vertical" width="14"></i></span>
+                    <button class="item-chip-btn" onclick="openPopover(this, 'plan', ${p.id})" type="button">
+                        <span class="item-badge-preview" style="background:${col.bg}; color:${col.text};">${escapeHtml(p.label)}</span>
+                        <span style="font-size:0.75rem; color:var(--color-slate-400); margin-left:2px;"><i data-lucide="pencil" width="12"></i></span>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        function deletePlan(id) {
+            showConfirmModal({
+                title: 'プランの削除',
+                message: 'このプランを削除しますか？',
+                confirmText: '削除する', confirmColor: 'danger',
+                onConfirm: async () => {
+                    plans = plans.filter(x => x.id !== id);
+                    renderPlans();
+                    showToast('プランを削除しました', 'default');
+                }
+            });
+        }
+
+        function addPlanItem() {
+            const input = document.getElementById('plan-add-input');
+            const label = input.value.trim();
+            if (!label) { showToast('プラン名を入力してください', 'default'); return; }
+            plans.push({ id: nextId++, label, colorKey: 'blue' });
+            input.value = '';
+            renderPlans();
+            showToast(`「${label}」を追加しました`, 'success');
+        }
+
+        // ===== 代理店 =====
+        function renderAgencies() {
+            const tbody = document.getElementById('agency-list');
+            tbody.innerHTML = '';
+            agencies.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:var(--color-slate-300);text-align:center;width:40px;"><i data-lucide="grip-vertical" width="14"></i></td>
+                    <td><input class="agency-table-input" value="${escapeHtml(a.name)}" placeholder="代理店名" onchange="updateAgency(${a.id},'name',this.value)"></td>
+                    <td><input class="agency-table-input" value="${escapeHtml(a.contact)}" placeholder="担当者名" onchange="updateAgency(${a.id},'contact',this.value)"></td>
+                    <td><input class="agency-table-input" value="${escapeHtml(a.tel)}" placeholder="電話番号" onchange="updateAgency(${a.id},'tel',this.value)"></td>
+                    <td style="text-align:right;"><button class="item-delete-btn" onclick="deleteAgency(${a.id})"><i data-lucide="trash-2" width="14"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+        function updateAgency(id, field, val) { const a = agencies.find(x => x.id === id); if (a) a[field] = val; }
+        function addAgencyRow() { agencies.push({ id: nextId++, name: '', contact: '', tel: '' }); renderAgencies(); }
+        function deleteAgency(id) {
+            showConfirmModal({
+                title: '代理店の削除', message: 'この代理店情報を削除しますか？', confirmText: '削除する', confirmColor: 'danger',
+                onConfirm: async () => { agencies = agencies.filter(x => x.id !== id); renderAgencies(); showToast('代理店を削除しました', 'default'); }
+            });
+        }
+
+        // ===== セクション切り替え =====
+        function showSection(name, btn) {
+            document.querySelectorAll('.master-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.settings-nav-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('section-' + name).classList.add('active');
+            btn.classList.add('active');
+            closePopover();
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderStatuses();
+            renderPlans();
+            renderAgencies();
+        });
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

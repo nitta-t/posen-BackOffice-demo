@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - ダッシュボード</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ページタブ */
+        .page-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--color-slate-200);
+            margin-bottom: 1.5rem;
+        }
+
+        .page-tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            background: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--color-slate-500);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.15s;
+        }
+
+        .page-tab-btn:hover {
+            color: var(--color-slate-800);
+        }
+
+        .page-tab-btn.active {
+            color: var(--color-primary-600);
+            border-bottom-color: var(--color-primary-600);
+        }
+
+        .page-tab-content {
+            display: none;
+        }
+
+        .page-tab-content.active {
+            display: block;
+        }
+
+        /* 分析メニュー */
+        .analytics-container {
+            display: flex;
+            height: calc(100vh - 14rem);
+            gap: 1.5rem;
+        }
+
+        .analytics-menu {
+            width: 220px;
+            background: white;
+            border: 1px solid var(--color-slate-200);
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .analytics-content {
+            flex: 1;
+            overflow-y: auto;
+            background: rgba(248, 250, 252, 0.5);
+            border-radius: 1rem;
+            border: 1px solid var(--color-slate-200);
+            padding: 1.5rem;
+        }
+
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: none;
+            background: none;
+            color: var(--color-slate-500);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .menu-btn:hover {
+            background-color: var(--color-slate-50);
+            color: var(--color-slate-900);
+        }
+
+        .menu-btn.active {
+            background-color: var(--color-primary-50);
+            color: var(--color-primary-700);
+            box-shadow: inset 3px 0 0 var(--color-primary-600);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- ページヘッダー -->
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1">ダッシュボード</h1>
+                    <p class="text-muted text-sm">2024年9月30日 現在</p>
+                </div>
+            </div>
+            <!-- Overview Content -->
+            <div id="page-tab-overview" class="page-tab-content active" style="margin-top: 24px;">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-muted text-sm font-bold uppercase">法人契約数</p>
+                            <div class="badge badge-success"><i data-lucide="arrow-up-right" width="12"></i> 12</div>
+                        </div>
+                        <h3 class="text-2xl font-bold">128</h3>
+                        <div class="mt-2 text-sm text-muted">前月比 +10.3%</div>
+                    </div>
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-muted text-sm font-bold uppercase">アカウント数</p>
+                            <div class="badge badge-success"><i data-lucide="arrow-up-right" width="12"></i> 85</div>
+                        </div>
+                        <h3 class="text-2xl font-bold">1,024</h3>
+                        <div class="mt-2 text-sm text-muted">前月比 +9.1%</div>
+                    </div>
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-muted text-sm font-bold uppercase">分析数</p>
+                            <div class="badge badge-success"><i data-lucide="arrow-up-right" width="12"></i> 12.5%</div>
+                        </div>
+                        <h3 class="text-2xl font-bold">45.2k</h3>
+                        <div class="mt-2 text-sm text-muted">枚 / 月</div>
+                    </div>
+                    <div class="card">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-muted text-sm font-bold uppercase">売上 (概算)</p>
+                            <div class="badge badge-success"><i data-lucide="arrow-up-right" width="12"></i> 8.2%</div>
+                        </div>
+                        <h3 class="text-2xl font-bold">¥3.2M</h3>
+                        <div class="mt-2 text-sm text-muted">目標達成率 92%</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-6">
+                    <!-- チャート (2/3) -->
+                    <div class="card">
+                        <h2 class="text-xl font-bold mb-4">主要指標推移</h2>
+                        <div style="height: 340px;">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- 最近の重要アクティビティ (1/3) -->
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-lg">重要アクティビティ</h2>
+                            <a href="activity-logs.html"
+                                class="text-xs text-primary-600 hover:text-primary-700 font-bold">すべて見る</a>
+                        </div>
+                        <div class="flex-1 overflow-y-auto pr-1">
+                            <div class="flex flex-col gap-5">
+                                <!-- 導入 -->
+                                <div class="flex gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="building-2" width="14"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold">新規導入: 青山美容クリニック 渋谷院</div>
+                                        <div class="text-xs text-muted mb-1 mt-0.5">新規Clinicsアカウントが登録されました</div>
+                                        <div class="text-xs text-slate-400 font-mono">今日 10:24</div>
+                                    </div>
+                                </div>
+                                <!-- プラン変更 -->
+                                <div class="flex gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="arrow-up-circle" width="14"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold">プラン追加: Posen/FIDセットプラン</div>
+                                        <div class="text-xs text-muted mb-1 mt-0.5">医療法人社団 恵心会 本院</div>
+                                        <div class="text-xs text-slate-400 font-mono">昨日 15:30</div>
+                                    </div>
+                                </div>
+                                <!-- 解約 -->
+                                <div class="flex gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="user-minus" width="14"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-danger">解約通知: 山田接骨院 横浜</div>
+                                        <div class="text-xs text-muted mb-1 mt-0.5">来月末で月額プラン解約予定です</div>
+                                        <div class="text-xs text-slate-400 font-mono">昨日 09:15</div>
+                                    </div>
+                                </div>
+                                <!-- アラート -->
+                                <div class="flex gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="alert-triangle" width="14"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-warning">アラート: 分析回数急増</div>
+                                        <div class="text-xs text-muted mb-1 mt-0.5">株式会社フィットネスプロ 目黒店</div>
+                                        <div class="text-xs text-slate-400 font-mono">2026-03-07</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ===== ページタブ切り替え =====
+        function switchPageTab(tabId, btn) {
+            // タブは削除されたので不要
+        }
+
+        // ===== 概要タブのグラフ =====
+        new Chart(document.getElementById('trendChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['4月', '5月', '6月', '7月', '8月', '9月'],
+                datasets: [
+                    { label: '法人契約数', data: [100, 105, 110, 115, 122, 128], borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3 },
+                    { label: 'アカウント数', data: [800, 850, 900, 940, 980, 1024], borderColor: '#0ea5e9', backgroundColor: '#0ea5e9', tension: 0.3, yAxisID: 'y1' },
+                    { label: '分析数 (x100)', data: [300, 320, 350, 380, 420, 452], borderColor: '#8b5cf6', backgroundColor: '#8b5cf6', tension: 0.3 },
+                    { label: '売上 (百万)', data: [2.5, 2.6, 2.8, 2.9, 3.1, 3.2], borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, yAxisID: 'y2' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { type: 'linear', display: true, position: 'left', title: { display: true, text: '契約数 / 分析数(x100)' } },
+                    y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'アカウント数' } },
+                    y2: { type: 'linear', display: false, position: 'right', grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - ユーザー詳細</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/utils.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="mb-4">
+                <a href="accounts.html" class="btn btn-secondary text-sm">
+                    <i data-lucide="arrow-left" width="16"></i> 一覧に戻る
+                </a>
+            </div>
+
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1" id="user-name-header">青山本院-01</h1>
+                    <p class="text-muted text-sm font-mono" id="user-id-display">Users ID: USR001</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold text-lg">アカウント情報</h2>
+                        <div class="flex gap-2">
+                            <button id="edit-btn" class="btn btn-secondary text-sm" onclick="toggleEditMode()">
+                                <i data-lucide="edit-2" width="14"></i> 編集
+                            </button>
+                            <!-- Actions (Hidden by default) -->
+                            <div id="edit-actions" class="flex gap-2" style="display: none;">
+                                <button type="button" class="btn btn-secondary text-sm"
+                                    onclick="cancelEdit()">キャンセル</button>
+                                <button type="button" class="btn btn-primary text-sm" onclick="submitForm()">保存</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="user-form">
+                        <table class="w-full">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 200px;">アカウント名</th>
+                                    <td>
+                                        <input type="text" id="input-name"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="青山本院-01" disabled>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>ログインID</th>
+                                    <td>
+                                        <input type="text" id="input-email"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="honin01@aoyama.example" disabled>
+                                    </td>
+                                </tr>
+                                <tr id="row-password">
+                                    <th>ログインパスワード</th>
+                                    <td>
+                                        <div class="flex gap-2 items-center">
+                                            <div style="position: relative; flex: 1;">
+                                                <input type="password" id="input-password"
+                                                    class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                                    placeholder="8文字以上、英数字を含む" value="TempPass1" disabled
+                                                    autocomplete="new-password">
+                                                <button type="button"
+                                                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-slate-400);"
+                                                    onclick="togglePasswordVisibility()" id="btn-pw-toggle">
+                                                    <i data-lucide="eye" width="16" id="pw-eye-icon"></i>
+                                                </button>
+                                            </div>
+                                            <button type="button" class="btn btn-secondary text-sm"
+                                                style="white-space: nowrap;" onclick="copyPassword()">
+                                                <i data-lucide="copy" width="14"></i> コピー
+                                            </button>
+                                            <button type="button" id="btn-generate" class="btn btn-secondary text-sm"
+                                                style="white-space: nowrap; display: none;"
+                                                onclick="generatePassword()">
+                                                <i data-lucide="shuffle" width="14"></i> 自動生成
+                                            </button>
+                                        </div>
+                                        <div class="text-xs text-muted mt-1" id="pw-hint" style="display: none;">
+                                            8文字以上、英大文字・英小文字・数字をそれぞれ1字以上含むこと</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Clinics ID</th>
+                                    <td>
+                                        <select id="input-clinic"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            disabled>
+                                            <option value="CL001">CL001 — 青山美容クリニック 本院</option>
+                                            <option value="CL002">CL002 — 青山美容クリニック 渋谷院</option>
+                                            <option value="CL003">CL003 — 鈴木整骨院</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>権限</th>
+                                    <td>
+                                        <select
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            disabled>
+                                            <option value="master" selected>master</option>
+                                            <option value="assistant">assistant</option>
+                                            <option value="staff">staff</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>有効期限</th>
+                                    <td>
+                                        <div class="flex gap-2 items-center">
+                                            <input id="expire-date" type="date"
+                                                class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent w-48"
+                                                value="2025-12-31" disabled>
+                                            <button type="button" id="btn-extend"
+                                                class="btn btn-sm btn-outline-secondary" onclick="extendOneYear()">
+                                                <i data-lucide="calendar-plus" width="14"></i> 1年延長
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr id="row-last-login">
+                                    <th>最終ログイン日時</th>
+                                    <td>
+                                        <span class="text-sm text-slate-700" id="last-login-display">2026-03-09
+                                            10:45</span>
+                                        <span class="text-xs text-muted ml-2">（自動記録・編集不可）</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>ステータス</th>
+                                    <td>
+                                        <div class="flex items-center gap-3">
+                                            <label class="flex items-center gap-2" style="cursor:pointer;">
+                                                <input type="radio" id="status-active" name="user-status" value="active"
+                                                    onchange="onStatusRadioChange(this)">
+                                                <span class="badge badge-success" style="cursor:pointer;">有効</span>
+                                            </label>
+                                            <label class="flex items-center gap-2" style="cursor:pointer;">
+                                                <input type="radio" id="status-inactive" name="user-status"
+                                                    value="inactive" onchange="onStatusRadioChange(this)">
+                                                <span class="badge badge-slate" style="cursor:pointer;">無効</span>
+                                            </label>
+                                        </div>
+                                        <p class="text-xs text-muted mt-1">無効にするとログインできなくなります</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            // 初期ステータスをラジオボタンに反映
+            const activeRadio = document.getElementById(isActive ? 'status-active' : 'status-inactive');
+            if (activeRadio) activeRadio.checked = true;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const clinicId = urlParams.get('clinic_id');
+
+            if (mode === 'create') {
+                setupCreateMode(clinicId);
+            }
+        });
+
+        function setupCreateMode(clinicId) {
+            // Update Header
+            document.getElementById('user-name-header').textContent = '新規Userアカウント作成';
+            document.title = 'Posen Back Office - 新規ユーザー作成';
+            document.getElementById('user-id-display').textContent = 'Users ID: (自動発行)';
+
+            // Hide 1-year extension button and last login (not needed on creation)
+            document.getElementById('btn-extend').style.display = 'none';
+            document.getElementById('row-last-login').style.display = 'none';
+
+            // Clear text/email Inputs
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-email').value = '';
+            document.getElementById('input-password').value = '';
+            document.getElementById('expire-date').value = '';
+
+            // Pre-fill Clinic ID if provided
+            if (clinicId) {
+                const clinicSelect = document.getElementById('input-clinic');
+                clinicSelect.value = clinicId;
+            }
+
+            // Enable Edit Mode
+            toggleEditMode();
+
+            // Hide normal edit button
+            document.getElementById('edit-btn').style.display = 'none';
+        }
+
+        let isActive = true;
+
+        function toggleEditMode() {
+            const form = document.getElementById('user-form');
+            const inputs = form.querySelectorAll('input, select');
+            const editActions = document.getElementById('edit-actions');
+            const editBtn = document.getElementById('edit-btn');
+
+            inputs.forEach(input => {
+                input.disabled = false;
+                input.classList.remove('disabled:bg-slate-50', 'disabled:text-slate-500');
+            });
+
+            editActions.style.display = 'flex';
+            editBtn.style.display = 'none';
+
+            // Show generate button and hint in edit mode
+            document.getElementById('btn-generate').style.display = 'inline-flex';
+            document.getElementById('pw-hint').style.display = 'block';
+
+            // Visual Cue
+            const formCard = document.querySelector('#user-form').closest('.card');
+            formCard.style.boxShadow = '0 0 0 2px var(--color-primary-100), 0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+            formCard.style.borderColor = 'var(--color-primary-200)';
+        }
+
+        function cancelEdit() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') {
+                window.history.back();
+                return;
+            }
+
+            const form = document.getElementById('user-form');
+            const inputs = form.querySelectorAll('input, select');
+            const editActions = document.getElementById('edit-actions');
+            const editBtn = document.getElementById('edit-btn');
+
+            inputs.forEach(input => {
+                input.disabled = true;
+                input.classList.add('disabled:bg-slate-50', 'disabled:text-slate-500');
+                input.classList.remove('bg-white');
+            });
+
+            // Hide generate button and hint
+            document.getElementById('btn-generate').style.display = 'none';
+            document.getElementById('pw-hint').style.display = 'none';
+
+            // Remove visual cue from card
+            const formCard = document.querySelector('#user-form').closest('.card');
+            formCard.style.boxShadow = '';
+            formCard.style.borderColor = '';
+
+            editActions.style.display = 'none';
+            editBtn.style.display = 'inline-flex';
+        }
+
+        async function submitForm() {
+            const btn = document.querySelector('#edit-actions button.btn-primary');
+            setButtonLoading(btn, true, '保存中...');
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            setButtonLoading(btn, false);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') {
+                showToast('ユーザーを作成しました', 'success');
+                setTimeout(() => window.history.back(), 1000);
+            } else {
+                cancelEdit();
+                showToast('ユーザー情報を保存しました', 'success');
+            }
+        }
+
+        function generatePassword() {
+            const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            const lower = 'abcdefghjkmnpqrstuvwxyz';
+            const digits = '23456789';
+            const all = upper + lower + digits;
+            let pw = '';
+            pw += upper[Math.floor(Math.random() * upper.length)];
+            pw += lower[Math.floor(Math.random() * lower.length)];
+            pw += digits[Math.floor(Math.random() * digits.length)];
+            for (let i = 3; i < 10; i++) {
+                pw += all[Math.floor(Math.random() * all.length)];
+            }
+            pw = pw.split('').sort(() => Math.random() - 0.5).join('');
+
+            const input = document.getElementById('input-password');
+            input.value = pw;
+            input.type = 'text';
+            document.getElementById('pw-eye-icon').setAttribute('data-lucide', 'eye-off');
+            lucide.createIcons();
+            showToast('パスワードを自動生成しました', 'success');
+        }
+
+        async function copyPassword() {
+            const pw = document.getElementById('input-password').value;
+            if (!pw) {
+                showToast('パスワードが未設定です', 'default');
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(pw);
+                showToast('パスワードをコピーしました', 'success');
+            } catch {
+                showToast('コピーに失敗しました', 'error');
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('input-password');
+            const icon = document.getElementById('pw-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        function extendOneYear() {
+            const dateInput = document.getElementById('expire-date');
+
+            // Allow editing only in edit mode? OR allow logic to work but only save if handled?
+            // User requested "1 year extension", usually this is an action, not just form fill.
+            // Let's make it an immediate action for better UX, or just fill the form.
+            // Since it's inside the form, let's just update the value.
+
+            const current = new Date(dateInput.value);
+            current.setFullYear(current.getFullYear() + 1);
+            dateInput.value = current.toISOString().split('T')[0];
+
+            showToast('有効期限を1年延長しました（保存してください）', 'info');
+
+            // If user wants this to be immediate save, we would call an API here.
+            // But since it's in an edit form, updating input is safer.
+            // However, the input might be disabled if not in edit mode.
+            if (dateInput.disabled) {
+                // If not in edit mode, maybe we should ask to enable edit mode or auto-save?
+                // For simplicity, let's just warn or temporarily enable?
+                // Let's assume this button should only work in edit mode or trigger a save.
+                // Re-reading user request: "1年更新などをできるようにもしたい" -> likely an operational action.
+                // Let's make it enable the input temporarily or just show toast if disabled.
+
+                showConfirmModal({
+                    title: '有効期限の更新',
+                    message: '有効期限を1年延長して保存しますか？',
+                    confirmText: '更新する',
+                    onConfirm: () => {
+                        showToast('有効期限を更新しました', 'success');
+                    }
+                });
+            }
+        }
+
+        function onStatusRadioChange(radio) {
+            isActive = radio.value === 'active';
+            const msg = isActive ? 'ユーザーを有効化しました' : 'ユーザーを無効化しました';
+            showToast(msg, isActive ? 'success' : 'default');
+        }
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

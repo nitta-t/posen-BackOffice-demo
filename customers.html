@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - 顧客管理</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/table.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/table.js"></script>
+    <style>
+        /* タグチップ */
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .add-tag-btn {
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 5px;
+            background: none;
+            cursor: pointer;
+            padding: 2px 8px;
+            font-size: 0.72rem;
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .add-tag-btn:hover {
+            border-color: var(--color-primary-400);
+            color: var(--color-primary-600);
+        }
+
+        /* フィルタードロップダウン */
+        .filter-dropdown-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .filter-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            border: 1px solid var(--color-slate-200, #e2e8f0);
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-family: inherit;
+            color: var(--color-slate-700);
+            transition: border-color 0.15s;
+            white-space: nowrap;
+        }
+
+        .filter-dropdown-btn:hover {
+            border-color: var(--color-slate-300);
+        }
+
+        .filter-dropdown-btn.has-filter {
+            border-color: var(--color-primary-400);
+            color: var(--color-primary-700);
+            background: #eff6ff;
+        }
+
+        .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-primary-600);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+        }
+
+        .filter-panel {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            z-index: 999;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            width: 240px;
+            padding: 12px;
+            display: none;
+            animation: panelIn 0.12s ease;
+        }
+
+        .filter-panel.open {
+            display: block;
+        }
+
+        @keyframes panelIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-panel-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--color-slate-400);
+            margin-bottom: 6px;
+            margin-top: 4px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.1s;
+            font-size: 0.875rem;
+        }
+
+        .filter-option:hover {
+            background: #f8fafc;
+        }
+
+        .filter-option input {
+            accent-color: var(--color-primary-600);
+            cursor: pointer;
+        }
+
+        .filter-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 8px 0;
+        }
+
+        .filter-clear-btn {
+            width: 100%;
+            padding: 7px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--color-slate-400);
+            text-align: center;
+            border-radius: 6px;
+            font-family: inherit;
+            transition: background 0.1s, color 0.1s;
+        }
+
+        .filter-clear-btn:hover {
+            background: #fee2e2;
+            color: var(--color-danger);
+        }
+
+        /* タグフィルターチェックボックスリスト */
+        .tag-filter-list {
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .tag-filter-search {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.8rem;
+            font-family: inherit;
+            margin-bottom: 6px;
+            outline: none;
+        }
+
+        .tag-filter-search:focus {
+            border-color: var(--color-primary-400);
+        }
+
+        /* タグポップオーバー（行につける用） */
+        .tag-popover {
+            position: fixed;
+            z-index: 9999;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            width: 240px;
+            overflow: hidden;
+            display: none;
+            animation: panelIn 0.1s ease;
+        }
+
+        .tag-popover.open {
+            display: block;
+        }
+
+        .tag-popover-search {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag-popover-search input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.875rem;
+            font-family: inherit;
+            color: var(--color-slate-800);
+            background: transparent;
+        }
+
+        .tag-popover-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+
+        .tag-popover-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .tag-popover-item:hover {
+            background: #f8fafc;
+        }
+
+        .tag-popover-item input[type="checkbox"] {
+            accent-color: var(--color-primary-600);
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+        .tag-popover-footer {
+            padding: 8px 12px;
+            border-top: 1px solid #f1f5f9;
+            background: #f8fafc;
+        }
+
+        .tag-create-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 4px;
+            font-size: 0.8rem;
+            color: var(--color-primary-600);
+            font-family: inherit;
+            border-radius: 6px;
+            transition: background 0.1s;
+        }
+
+        .tag-create-btn:hover {
+            background: #eff6ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1">顧客管理</h1>
+                    <p class="text-muted text-sm">契約法人・クリニックの管理</p>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='customer-detail.html?mode=create'">
+                    <i data-lucide="plus" width="16"></i> 新規顧客情報登録
+                </button>
+            </div>
+
+            <div class="card p-0">
+                <!-- フィルターバー -->
+                <div class="p-4 flex justify-between items-center"
+                    style="border-bottom: 1px solid var(--color-slate-100); background: #f8fafc80; gap:12px; flex-wrap:wrap;">
+                    <div class="flex gap-2 items-center flex-wrap">
+
+                        <!-- ステータスフィルター -->
+                        <div class="filter-dropdown-wrap">
+                            <button class="filter-dropdown-btn" id="status-filter-btn"
+                                onclick="toggleFilterPanel('status-filter-panel', this)">
+                                <i data-lucide="sliders-horizontal" width="14"></i>
+                                <span id="status-filter-label">ステータス</span>
+                                <span class="filter-badge" id="status-filter-badge" style="display:none;">1</span>
+                                <i data-lucide="chevron-down" width="14"></i>
+                            </button>
+                            <div class="filter-panel" id="status-filter-panel">
+                                <div class="filter-panel-label">ステータス</div>
+                                <label class="filter-option"><input type="radio" name="cust-status" value="" checked
+                                        onchange="applyFilter()"> すべて</label>
+                                <label class="filter-option"><input type="radio" name="cust-status" value="利用中"
+                                        onchange="applyFilter()"> 利用中</label>
+                                <label class="filter-option"><input type="radio" name="cust-status" value="停止中"
+                                        onchange="applyFilter()"> 停止中</label>
+                                <label class="filter-option"><input type="radio" name="cust-status" value="解約"
+                                        onchange="applyFilter()"> 解約済</label>
+                                <label class="filter-option"><input type="radio" name="cust-status" value="支払遅延"
+                                        onchange="applyFilter()"> 支払遅延</label>
+                                <div class="filter-divider"></div>
+                                <button class="filter-clear-btn" onclick="clearStatusFilter()">クリア</button>
+                            </div>
+                        </div>
+
+                        <!-- タグフィルター -->
+                        <div class="filter-dropdown-wrap">
+                            <button class="filter-dropdown-btn" id="tag-filter-btn"
+                                onclick="toggleFilterPanel('tag-filter-panel', this)">
+                                <i data-lucide="tag" width="14"></i>
+                                <span id="tag-filter-label">タグ</span>
+                                <span class="filter-badge" id="tag-filter-badge" style="display:none;">0</span>
+                                <i data-lucide="chevron-down" width="14"></i>
+                            </button>
+                            <div class="filter-panel" id="tag-filter-panel" style="width:220px;">
+                                <div class="filter-panel-label">タグで絞り込み</div>
+                                <input type="text" class="tag-filter-search" placeholder="タグを検索..."
+                                    oninput="renderTagFilterList(this.value)">
+                                <div class="tag-filter-list" id="tag-filter-list"></div>
+                                <div class="filter-divider"></div>
+                                <button class="filter-clear-btn" onclick="clearTagFilter()">タグクリア</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="position: relative; width: 280px;">
+                        <i data-lucide="search" width="16"
+                            style="position:absolute;left:12px;top:12px;color:var(--color-slate-500);"></i>
+                        <input type="text" id="search-input" class="input" placeholder="顧客名、IDで検索..."
+                            style="padding-left:36px;" oninput="applyFilter()">
+                    </div>
+                </div>
+
+                <!-- テーブル -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="string">顧客ID</th>
+                            <th data-sort="string">顧客名 (法人・施設名)</th>
+                            <th data-sort="string">プラン</th>
+                            <th data-sort="string">ステータス</th>
+                            <th data-sort="string">次回更新</th>
+                            <th>タグ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-tbody"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- タグポップオーバー（行につける用） -->
+    <div id="tag-popover" class="tag-popover">
+        <div class="tag-popover-search">
+            <i data-lucide="search" width="14" style="color:#94a3b8;flex-shrink:0;"></i>
+            <input type="text" id="tag-search-input" placeholder="タグを検索..." oninput="renderRowTagList(this.value)">
+        </div>
+        <div class="tag-popover-list" id="tag-row-list"></div>
+        <div class="tag-popover-footer">
+            <button class="tag-create-btn" onclick="createTagFromInput()">
+                <i data-lucide="plus" width="14"></i>
+                <span id="tag-create-label">新しいタグを作成</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ===== タグマスター =====
+        const TAG_COLORS = [
+            { bg: '#dbeafe', text: '#1d4ed8' }, { bg: '#dcfce7', text: '#15803d' },
+            { bg: '#fef9c3', text: '#a16207' }, { bg: '#fee2e2', text: '#b91c1c' },
+            { bg: '#f3e8ff', text: '#7e22ce' }, { bg: '#ffedd5', text: '#c2410c' },
+            { bg: '#f0fdf4', text: '#166534' }, { bg: '#fce7f3', text: '#be185d' },
+        ];
+        let tagMaster = [
+            { id: 't1', label: '問い合わせ対応中', ci: 2 },
+            { id: 't2', label: '導入準備中', ci: 0 },
+            { id: 't3', label: 'フォローアップ', ci: 5 },
+            { id: 't4', label: 'VIP顧客', ci: 6 },
+            { id: 't5', label: '更新交渉中', ci: 3 },
+        ];
+        let tagNextId = 200;
+
+        // ===== 顧客データ =====
+        let customers = [
+            { id: 'CUST001', name: '医療法人社団 青山会', plan: 'Posen月額プラン', status: '利用中', renewal: '2024-03-31', tags: ['t1', 't4'] },
+            { id: 'CUST002', name: '株式会社 ヘルスケア・ジャパン', plan: 'Posen一括プラン', status: '利用中', renewal: '2024-05-20', tags: ['t2'] },
+            { id: 'CUST003', name: '鈴木整骨院', plan: '月々プラン', status: '支払遅延', renewal: '2023-12-31', tags: ['t3', 't5'] },
+        ];
+
+        const STATUS_BADGE = { '利用中': 'badge-success', '停止中': 'badge-warning', '解約': 'badge-danger', '支払遅延': 'badge-danger' };
+        let activeFilterTags = new Set();
+        let currentRowCustomerId = null;
+
+        function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+        function getTag(id) { return tagMaster.find(t => t.id === id); }
+
+        // ===== テーブル描画 =====
+        function renderTable() {
+            const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+            const statusVal = document.querySelector('input[name="cust-status"]:checked')?.value || '';
+            const tbody = document.getElementById('customers-tbody');
+            tbody.innerHTML = '';
+
+            customers.forEach(c => {
+                if (q && !c.name.toLowerCase().includes(q) && !c.id.toLowerCase().includes(q)) return;
+                if (statusVal && c.status !== statusVal) return;
+                if (activeFilterTags.size && ![...activeFilterTags].every(tid => c.tags.includes(tid))) return;
+
+                const tagsHtml = c.tags.map(tid => {
+                    const t = getTag(tid); if (!t) return '';
+                    const col = TAG_COLORS[t.ci] || TAG_COLORS[0];
+                    return `<span class="tag-chip" style="background:${col.bg};color:${col.text};">${esc(t.label)}</span>`;
+                }).join('');
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover-actions-row';
+                tr.style.cursor = 'pointer';
+                tr.onclick = (e) => { if (!e.target.closest('.tag-area')) window.location.href = 'customer-detail.html'; };
+                tr.innerHTML = `
+                    <td class="text-muted text-sm font-mono">${esc(c.id)}</td>
+                    <td class="font-bold">${esc(c.name)}</td>
+                    <td><span class="badge badge-info">${esc(c.plan)}</span></td>
+                    <td><span class="badge ${STATUS_BADGE[c.status] || 'badge-neutral'}">${esc(c.status)}</span></td>
+                    <td class="text-sm">${esc(c.renewal)}</td>
+                    <td>
+                        <div class="tag-area" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;" onclick="event.stopPropagation()">
+                            ${tagsHtml}
+                            <button class="add-tag-btn" onclick="openRowTagPopover(event,'${c.id}')">
+                                <i data-lucide="plus" width="11"></i> タグ
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function applyFilter() { renderTable(); }
+
+        // ===== フィルターパネル =====
+        function toggleFilterPanel(panelId, btn) {
+            const panel = document.getElementById(panelId);
+            const isOpen = panel.classList.contains('open');
+            document.querySelectorAll('.filter-panel.open').forEach(p => p.classList.remove('open'));
+            if (!isOpen) { panel.classList.add('open'); }
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('.filter-dropdown-wrap') && !e.target.closest('.tag-popover')) {
+                document.querySelectorAll('.filter-panel.open').forEach(p => p.classList.remove('open'));
+            }
+            const popover = document.getElementById('tag-popover');
+            if (popover.classList.contains('open') && !popover.contains(e.target) && !e.target.closest('.add-tag-btn')) {
+                popover.classList.remove('open');
+            }
+        });
+
+        function clearStatusFilter() {
+            document.querySelector('input[name="cust-status"][value=""]').checked = true;
+            updateStatusBadge();
+            renderTable();
+        }
+
+        function updateStatusBadge() {
+            const val = document.querySelector('input[name="cust-status"]:checked')?.value || '';
+            const badge = document.getElementById('status-filter-badge');
+            const label = document.getElementById('status-filter-label');
+            const btn = document.getElementById('status-filter-btn');
+            if (val) { badge.style.display = 'inline-flex'; label.textContent = val; btn.classList.add('has-filter'); }
+            else { badge.style.display = 'none'; label.textContent = 'ステータス'; btn.classList.remove('has-filter'); }
+        }
+
+        document.querySelectorAll('input[name="cust-status"]').forEach(r => r.addEventListener('change', () => { updateStatusBadge(); renderTable(); }));
+
+        // ===== タグフィルター =====
+        function renderTagFilterList(q = '') {
+            const list = document.getElementById('tag-filter-list');
+            list.innerHTML = '';
+            tagMaster.filter(t => !q || t.label.includes(q)).forEach(t => {
+                const col = TAG_COLORS[t.ci] || TAG_COLORS[0];
+                const div = document.createElement('div');
+                div.className = 'filter-option';
+                div.style.cssText = 'padding: 6px 4px;';
+                div.onclick = () => { const cb = div.querySelector('input'); cb.checked = !cb.checked; toggleFilterTag(t.id, cb.checked); };
+                div.innerHTML = `<input type="checkbox" ${activeFilterTags.has(t.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleFilterTag('${t.id}', this.checked)">
+                    <span class="tag-chip" style="background:${col.bg};color:${col.text};">${esc(t.label)}</span>`;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleFilterTag(tagId, checked) {
+            if (checked) activeFilterTags.add(tagId);
+            else activeFilterTags.delete(tagId);
+            updateTagFilterBadge();
+            renderTable();
+        }
+
+        function updateTagFilterBadge() {
+            const cnt = activeFilterTags.size;
+            const badge = document.getElementById('tag-filter-badge');
+            const btn = document.getElementById('tag-filter-btn');
+            const label = document.getElementById('tag-filter-label');
+            if (cnt > 0) { badge.style.display = 'inline-flex'; badge.textContent = cnt; btn.classList.add('has-filter'); label.textContent = 'タグ'; }
+            else { badge.style.display = 'none'; btn.classList.remove('has-filter'); label.textContent = 'タグ'; }
+        }
+
+        function clearTagFilter() { activeFilterTags.clear(); renderTagFilterList(); updateTagFilterBadge(); renderTable(); }
+
+        // タグフィルターパネル開いたとき描画
+        document.getElementById('tag-filter-btn').addEventListener('click', () => {
+            setTimeout(() => renderTagFilterList(''), 10);
+        });
+
+        // ===== 行のタグポップオーバー =====
+        function openRowTagPopover(event, customerId) {
+            event.stopPropagation();
+            currentRowCustomerId = customerId;
+            const popover = document.getElementById('tag-popover');
+            document.getElementById('tag-search-input').value = '';
+            document.getElementById('tag-create-label').textContent = '新しいタグを作成';
+            renderRowTagList('');
+            const rect = event.currentTarget.getBoundingClientRect();
+            popover.style.top = (rect.bottom + 4) + 'px';
+            popover.style.left = rect.left + 'px';
+            popover.classList.add('open');
+            lucide.createIcons();
+            document.getElementById('tag-search-input').focus();
+        }
+
+        function renderRowTagList(q) {
+            const cust = customers.find(c => c.id === currentRowCustomerId);
+            const list = document.getElementById('tag-row-list');
+            list.innerHTML = '';
+            tagMaster.filter(t => !q || t.label.includes(q)).forEach(t => {
+                const col = TAG_COLORS[t.ci] || TAG_COLORS[0];
+                const checked = cust && cust.tags.includes(t.id);
+                const div = document.createElement('div');
+                div.className = 'tag-popover-item';
+                div.onclick = () => toggleRowTag(t.id);
+                div.innerHTML = `<input type="checkbox" ${checked ? 'checked' : ''} onclick="event.stopPropagation(); toggleRowTag('${t.id}')">
+                    <span class="tag-chip" style="background:${col.bg};color:${col.text};">${esc(t.label)}</span>`;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleRowTag(tagId) {
+            const cust = customers.find(c => c.id === currentRowCustomerId);
+            if (!cust) return;
+            const idx = cust.tags.indexOf(tagId);
+            if (idx >= 0) cust.tags.splice(idx, 1);
+            else cust.tags.push(tagId);
+            renderRowTagList(document.getElementById('tag-search-input').value);
+            renderTable();
+        }
+
+        function createTagFromInput() {
+            const q = document.getElementById('tag-search-input').value.trim();
+            if (!q) return;
+            const existing = tagMaster.find(t => t.label === q);
+            if (existing) { toggleRowTag(existing.id); return; }
+            const newTag = { id: 't' + (tagNextId++), label: q, ci: Math.floor(Math.random() * TAG_COLORS.length) };
+            tagMaster.push(newTag);
+            toggleRowTag(newTag.id);
+            document.getElementById('tag-search-input').value = '';
+            document.getElementById('tag-create-label').textContent = '新しいタグを作成';
+        }
+
+        document.getElementById('tag-search-input')?.addEventListener('input', e => {
+            const q = e.target.value;
+            document.getElementById('tag-create-label').textContent = q ? `「${q}」を新規タグとして追加` : '新しいタグを作成';
+            renderRowTagList(q);
+        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.tag-popover.open, .filter-panel.open').forEach(p => p.classList.remove('open')); });
+
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); renderTable(); });
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - アカウント詳細 (Clinics)</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/table.css">
+    <link rel="stylesheet" href="css/tabs.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/utils.js"></script>
+    <script>
+        // Init Lucide icons
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="mb-4">
+                <a href="accounts.html" class="btn btn-secondary text-sm">
+                    <i data-lucide="arrow-left" width="16"></i> 一覧に戻る
+                </a>
+            </div>
+
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold mb-1">青山美容クリニック 本院</h1>
+                    <div class="flex gap-3 text-sm">
+                        <!-- <span class="badge badge-info">プレミアムプラン</span> Removed -->
+                        <p class="text-muted text-sm font-mono" id="account-id-display">Clinics ID: CL001</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-8">
+                <!-- Basic Info -->
+                <div id="section-basic">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-lg">アカウント基本情報</h2>
+                            <div class="flex gap-2">
+                                <button id="edit-btn" class="btn btn-secondary text-sm" onclick="toggleEditMode()">
+                                    <i data-lucide="edit-2" width="14"></i> 編集
+                                </button>
+                                <!-- Actions (Hidden by default) -->
+                                <div id="edit-actions" class="flex gap-2" style="display: none;">
+                                    <button type="button" class="btn btn-secondary text-sm"
+                                        onclick="cancelEdit()">キャンセル</button>
+                                    <button type="button" class="btn btn-primary text-sm"
+                                        onclick="submitForm()">保存</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="account-form">
+                            <table class="w-full">
+                                <tbody>
+                                    <tr>
+                                        <th style="width: 200px;">顧客名<span class="text-danger ml-1">*</span></th>
+                                        <td>
+                                            <select id="input-customer-id"
+                                                class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                                disabled>
+                                                <option value="">顧客を選択してください</option>
+                                                <option value="CUST001" selected>CUST001 医療法人社団 青山会</option>
+                                                <option value="CUST002">CUST002 渋谷ビューティークリニック</option>
+                                                <option value="CUST003">CUST003 新宿皮フ科</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="width: 200px;">アカウント名</th>
+                                        <td>
+                                            <input type="text"
+                                                class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                                value="青山美容クリニック 本院" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>親アカウントID</th>
+                                        <td>
+                                            <select id="input-parent-account-id"
+                                                class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                                disabled>
+                                                <option value="">なし</option>
+                                                <option value="CL001">CL001 青山美容クリニック 本院</option>
+                                                <option value="CL002">CL002 青山美容クリニック 渋谷院</option>
+                                                <option value="CL003">CL003 鈴木整骨院</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <!-- Contract Plan Removed -->
+                                    <tr>
+                                        <th>有効オプション</th>
+                                        <td>
+                                            <div class="grid grid-cols-2 gap-3 py-2">
+                                                <label
+                                                    class="flex items-center gap-3 p-2 rounded bg-slate-50 border border-slate-100">
+                                                    <input type="checkbox" id="opt-basic" checked disabled
+                                                        class="accent-primary-600 w-4 h-4">
+                                                    <span class="font-medium text-slate-700">基本機能</span>
+                                                </label>
+                                                <label
+                                                    class="flex items-center gap-3 p-2 rounded bg-slate-50 border border-slate-100">
+                                                    <input type="checkbox" id="opt-corp" disabled
+                                                        class="accent-primary-600 w-4 h-4">
+                                                    <span class="font-medium text-slate-700">法人管理</span>
+                                                </label>
+                                                <label
+                                                    class="flex items-center gap-3 p-2 rounded bg-slate-50 border border-slate-100">
+                                                    <input type="checkbox" id="opt-4df" checked disabled
+                                                        class="accent-primary-600 w-4 h-4" onchange="toggle4dfId(this)">
+                                                    <span class="font-medium text-slate-700">4DF連携</span>
+                                                </label>
+                                                <label
+                                                    class="flex items-center gap-3 p-2 rounded bg-slate-50 border border-slate-100">
+                                                    <input type="checkbox" id="opt-motion" disabled
+                                                        class="accent-primary-600 w-4 h-4">
+                                                    <span class="font-medium text-slate-700">運動機能測定</span>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr id="row-4df-id">
+                                        <th>4DF ID</th>
+                                        <td>
+                                            <input type="text" id="input-4df-id"
+                                                class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                                value="4DF-CL001" placeholder="4DF IDを入力" disabled>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Users List -->
+                <div id="section-users" style="display:none;">
+                    <div class="card p-0">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                            <h2 class="font-bold text-lg">Userアカウント情報</h2>
+                            <button class="btn btn-secondary text-sm"
+                                onclick="window.location.href='account-user-detail.html?mode=create&clinic_id=CL001'">
+                                <i data-lucide="plus" width="14"></i> Usersアカウント追加
+                            </button>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="string">アカウント名</th>
+                                    <th data-sort="string">ログインID</th>
+                                    <th data-sort="string">権限</th>
+                                    <th data-sort="string">最終ログイン</th>
+                                    <th data-sort="string">有効期限</th>
+                                    <th data-sort="string">ステータス</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="hover-actions-row" onclick="window.location.href='account-user-detail.html'">
+                                    <td class="font-medium">青山本院-01</td>
+                                    <td class="font-mono text-muted">honin01@aoyama.example</td>
+                                    <td><span class="badge badge-neutral">master</span></td>
+                                    <td class="text-sm text-muted">2026-03-09 10:45</td>
+                                    <td class="text-sm">2025-12-31</td>
+                                    <td><span class="badge badge-success">有効</span></td>
+                                </tr>
+                                <tr class="hover-actions-row" onclick="window.location.href='account-user-detail.html'">
+                                    <td class="font-medium">青山本院-02</td>
+                                    <td class="font-mono text-muted">honin02@aoyama.example</td>
+                                    <td><span class="badge badge-neutral">staff</span></td>
+                                    <td class="text-sm text-muted">2026-03-08 09:12</td>
+                                    <td class="text-sm">2025-12-31</td>
+                                    <td><span class="badge badge-success">有効</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        lucide.createIcons();
+        // initTabs(); // No longer needed
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for create mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+
+            if (mode === 'create') {
+                setupCreateMode();
+            } else {
+                // 詳細表示時はユーザー一覧を表示
+                document.getElementById('section-users').style.display = 'block';
+            }
+        });
+
+        function setupCreateMode() {
+            // Update Header
+            document.querySelector('h1').textContent = '新規CLINICSアカウント作成';
+            document.title = 'Posen Back Office - 新規アカウント作成';
+            document.getElementById('account-id-display').textContent = 'Clinics ID: (自動発行)';
+
+            // Hide Actions
+            document.getElementById('header-actions') && (document.getElementById('header-actions').style.display = 'none');
+            // section-users はデフォルト非表示なので何もしない
+
+            // Clear Inputs
+            const inputs = document.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => input.value = '');
+
+            // Uncheck checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+
+            // Enable Edit Mode immediately
+            toggleEditMode(true);
+
+            // Hide the normal edit button since we are permanently in edit mode for creation
+            document.getElementById('edit-btn').style.display = 'none';
+
+            // Auto-select customer if customer_id provided in URL
+            const customerId = urlParams.get('customer_id');
+            const customerSelect = document.getElementById('input-customer-id');
+            if (customerId && customerSelect) {
+                customerSelect.value = customerId;
+                // Since this is adding an account to an existing customer, make it read-only
+                customerSelect.style.pointerEvents = 'none';
+                customerSelect.style.backgroundColor = '#f8fafc'; // look disabled
+            } else {
+                // If not provided, make it selectable
+                customerSelect.value = '';
+            }
+        }
+
+        function toggleEditMode(forceEdit = null) {
+            const body = document.body;
+            let isEditing;
+
+            if (forceEdit !== null) {
+                if (forceEdit) body.classList.add('is-editing');
+                else body.classList.remove('is-editing');
+                isEditing = forceEdit;
+            } else {
+                isEditing = body.classList.toggle('is-editing');
+            }
+
+            // Visual Cue for Edit Mode
+            const formCard = document.querySelector('#account-form').closest('.card');
+            if (isEditing) {
+                formCard.style.boxShadow = '0 0 0 2px var(--color-primary-100), 0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                formCard.style.borderColor = 'var(--color-primary-200)';
+            } else {
+                formCard.style.boxShadow = '';
+                formCard.style.borderColor = '';
+            }
+
+            // Toggle Inputs
+            const inputs = document.querySelectorAll('.card input, .card select, .card textarea');
+            inputs.forEach(input => {
+                input.disabled = !isEditing;
+                if (isEditing) {
+                    input.classList.add('bg-white');
+                    input.classList.remove('disabled:bg-slate-50');
+                } else {
+                    input.classList.remove('bg-white');
+                    input.classList.add('disabled:bg-slate-50');
+                }
+            });
+
+            // Toggle Header Buttons
+            const editBtn = document.getElementById('edit-btn');
+            const editActions = document.getElementById('edit-actions');
+
+            if (isEditing) {
+                editActions.style.display = 'flex';
+                editBtn.style.display = 'none';
+            } else {
+                editActions.style.display = 'none';
+                editBtn.style.display = 'inline-flex';
+            }
+        }
+
+        function toggle4dfId(checkbox) {
+            const row = document.getElementById('row-4df-id');
+            const input = document.getElementById('input-4df-id');
+            if (checkbox.checked) {
+                row.style.display = '';
+                input.disabled = document.getElementById('edit-btn').style.display !== 'none'; // disabled if not editing
+            } else {
+                row.style.display = 'none';
+                input.value = '';
+            }
+        }
+
+        function cancelEdit() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') {
+                window.location.href = 'accounts.html';
+                return;
+            }
+            toggleEditMode(false);
+            // Reset values ideally, but for now just toggle back
+        }
+
+        async function submitForm() {
+            const saveBtn = document.querySelector('#edit-actions button.btn-primary'); // Find the save button
+            // Or get by text content if no cleaner way (adding ID would be better but trying to be minimal)
+            // Let's assume the order in HTML: cancel, save. So it's the second child.
+            // Better: add ID to save button in HTML. But I can't easily multireplace that small part without big chunk.
+            // Let's use the one in edit-actions.
+            const btns = document.querySelectorAll('#edit-actions button');
+            const targetBtn = btns[1];
+
+            setButtonLoading(targetBtn, true);
+
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') {
+                showToast('アカウントを作成しました', 'success');
+                setTimeout(() => window.location.href = 'accounts.html', 1000);
+            } else {
+                setButtonLoading(targetBtn, false);
+                showToast('変更を保存しました', 'success');
+                toggleEditMode(false);
+            }
+        }
+
+        // Clinicsのステータスを有効なUserアカウントの有無で自動判断
+        function autoUpdateClinicStatus() {
+            // 有効なUserアカウント数をカウント（ダミー：現在表示されているactiveUser表示中の数）
+            const activeUserRows = document.querySelectorAll('#user-tbody tr[data-status="active"]');
+            const hasActiveUser = activeUserRows.length > 0;
+            const badge = document.getElementById('status-badge');
+            if (badge) {
+                badge.textContent = hasActiveUser ? '有効' : '無効';
+                badge.className = hasActiveUser ? 'badge badge-success' : 'badge badge-slate';
+            }
+        }
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>

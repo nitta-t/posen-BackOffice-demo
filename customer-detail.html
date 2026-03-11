@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posen Back Office - 顧客詳細</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/table.css">
+    <link rel="stylesheet" href="css/tabs.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="js/utils.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .page-sticky-header {
+            flex-shrink: 0;
+            padding: 16px 32px 0;
+            background: var(--color-bg-primary, #f8fafc);
+            border-bottom: 1px solid var(--color-slate-100, #e2e8f0);
+        }
+
+        /* 青グラデーションヘッダーカード */
+        .customer-hero {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-top: 12px;
+            margin-bottom: 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25);
+        }
+
+        .customer-hero::before {
+            content: none;
+        }
+
+        .customer-hero::after {
+            content: none;
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .hero-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.01em;
+            margin: 0 0 10px;
+        }
+
+        .hero-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .hero-badge-status {
+            background: #fff;
+            color: #1e40af;
+            border: none;
+        }
+
+        .hero-badge-status.status-active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .hero-badge-status.status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .hero-badge-status.status-churn {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .hero-badge-tag {
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .hero-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #374151;
+            font-family: inherit;
+        }
+
+        .hero-btn:hover {
+            background: #f1f5f9;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .hero-btn-primary {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+
+        .hero-btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .hero-info-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .hero-info-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.78);
+        }
+
+        .hero-info-sep {
+            display: inline-block;
+            width: 1px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .hero-status-select {
+            border: none;
+            background: transparent;
+            font-size: 0.75rem;
+            color: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 0;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .hero-status-select option {
+            color: #1e293b;
+            background: #fff;
+        }
+
+        .page-scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px 40px;
+        }
+
+        /* タブナビ */
+        .tab-nav-sticky {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--color-slate-100, #e2e8f0);
+            margin-top: 14px;
+        }
+
+        .tab-nav-sticky button {
+            padding: 10px 18px;
+            border: none;
+            background: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-slate-500, #64748b);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+        }
+
+        .tab-nav-sticky button:hover {
+            color: var(--color-slate-800);
+        }
+
+        .tab-nav-sticky button.active {
+            color: var(--color-primary-600, #2563eb);
+            border-bottom-color: var(--color-primary-600, #2563eb);
+            font-weight: 600;
+        }
+
+        /* メモ */
+        .memo-card {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .memo-textarea {
+            width: 100%;
+            min-height: 72px;
+            background: transparent;
+            border: none;
+            resize: vertical;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #92400e;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .memo-textarea:disabled {
+            cursor: default;
+        }
+
+        /* 情報グリッド */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 24px;
+        }
+
+        /* 契約サマリーカード */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: #fff;
+            border: 1px solid var(--color-slate-100, #e2e8f0);
+            border-radius: 10px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+
+        .summary-card .summary-num {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 4px 0 2px;
+        }
+
+        .summary-card .summary-label {
+            font-size: 0.72rem;
+            color: var(--color-slate-500);
+            font-weight: 500;
+        }
+
+        .summary-card .summary-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+        }
+
+        /* 所属アカウント展開 */
+        .clinic-row-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            cursor: pointer;
+            user-select: none;
+            background: var(--color-slate-50, #f8fafc);
+            border-bottom: 1px solid var(--color-slate-100, #e2e8f0);
+            transition: background 0.1s;
+        }
+
+        .clinic-row-header:hover {
+            background: #f1f5f9;
+        }
+
+        .clinic-chevron {
+            transition: transform 0.2s;
+        }
+
+        .clinic-chevron.open {
+            transform: rotate(90deg);
+        }
+
+        .user-sub-table {
+            background: #fff;
+        }
+
+        .user-sub-table td {
+            padding: 10px 16px 10px 44px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.85rem;
+        }
+
+        .user-sub-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .role-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+        }
+
+        .role-main {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .role-office {
+            background: #f3e8ff;
+            color: #7e22ce;
+        }
+
+        .role-staff {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        /* 施設テーブル */
+        .facility-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .facility-table th {
+            text-align: left;
+            padding: 9px 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--color-slate-400);
+            background: var(--color-slate-50);
+            border-bottom: 1px solid var(--color-slate-100);
+        }
+
+        .facility-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+
+        .facility-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .facility-input {
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.875rem;
+            background: transparent;
+            width: 100%;
+            font-family: inherit;
+            color: var(--color-slate-800);
+        }
+
+        .facility-input:hover {
+            border-color: var(--color-slate-200);
+            background: #f8fafc;
+        }
+
+        .facility-input:focus {
+            outline: none;
+            border-color: var(--color-primary-400);
+            background: #fff;
+        }
+
+        .facility-input:disabled {
+            background: transparent;
+            border-color: transparent;
+            cursor: default;
+            color: var(--color-slate-700);
+        }
+
+        /* 行アクションメニュー */
+        .row-menu-wrap {
+            position: relative;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .row-menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            color: #94a3b8;
+            font-size: 1rem;
+            line-height: 1;
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .row-menu-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .row-menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            min-width: 120px;
+            overflow: hidden;
+        }
+
+        .row-menu-dropdown.open {
+            display: block;
+        }
+
+        .row-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #374151;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .row-menu-item:hover {
+            background: #f8fafc;
+        }
+
+        .row-menu-item.danger {
+            color: #dc2626;
+        }
+
+        .row-menu-item.danger:hover {
+            background: #fef2f2;
+        }
+
+        .row-saving {
+            background: #f0fdf4 !important;
+        }
+
+        /* 契約情報 */
+        .contract-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-row label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--color-slate-400);
+        }
+
+        .info-row .info-val {
+            font-size: 0.9rem;
+            color: var(--color-slate-800);
+            font-weight: 500;
+        }
+
+        /* ヘッダー インフォバー */
+        .header-info-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .info-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .info-chip-sep {
+            display: inline-block;
+            width: 1px;
+            height: 12px;
+            background: #e2e8f0;
+        }
+
+        .info-chip-select {
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #16a34a;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+            font-family: inherit;
+            appearance: auto;
+        }
+
+        .info-chip-select:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <!-- スティッキーヘッダー -->
+            <div class="page-sticky-header">
+                <div class="mb-3">
+                    <a href="customers.html" class="btn btn-secondary text-sm">
+                        <i data-lucide="arrow-left" width="16"></i> 一覧に戻る
+                    </a>
+                </div>
+
+                <!-- 青グラデーションヒーローカード -->
+                <div id="header-detail" class="mb-3">
+                    <div class="customer-hero">
+                        <div class="hero-top">
+                            <div>
+                                <h1 class="hero-name" id="header-name">医療法人社団 青山会</h1>
+                                <div class="hero-badges">
+                                    <!-- ステータスバッジ (クリックで変更) -->
+                                    <span class="hero-badge hero-badge-status status-active" id="status-badge">
+                                        <i data-lucide="circle" width="7" style="fill:currentColor;"></i>
+                                        <select id="header-status-select" class="hero-status-select"
+                                            onchange="onStatusChange(this)">
+                                            <option value="リード獲得">リード獲得</option>
+                                            <option value="利用準備中">利用準備中</option>
+                                            <option value="利用中" selected>利用中</option>
+                                            <option value="解約">解約</option>
+                                            <option value="無効">無効</option>
+                                        </select>
+                                    </span>
+                                    <span class="hero-badge hero-badge-tag">整骨院</span>
+                                </div>
+                            </div>
+                            <div class="hero-actions">
+                                <div id="edit-actions" style="display:none;" class="flex gap-2">
+                                    <button type="button" class="hero-btn" onclick="cancelEdit()">キャンセル</button>
+                                    <button type="button" class="hero-btn hero-btn-primary"
+                                        onclick="submitForm()">保存</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- インフォバー -->
+                        <div class="hero-info-bar">
+                            <span class="hero-info-item">
+                                <i data-lucide="layers" width="12"></i>
+                                <span id="header-plan">Posen月額プラン</span>
+                            </span>
+                            <span class="hero-info-sep"></span>
+                            <span class="hero-info-item">
+                                <i data-lucide="calendar-clock" width="12"></i>
+                                <span>更新2024-03-31</span>
+                                <span style="color:#fcd34d; font-weight:700;"> ・あと35日</span>
+                            </span>
+                            <span class="hero-info-sep"></span>
+                            <span class="hero-info-item">
+                                <i data-lucide="building-2" width="12"></i>
+                                <span>Clinics×2　ユーザー×8</span>
+                            </span>
+                            <span class="hero-info-sep"></span>
+                            <span class="hero-info-item" style="color:rgba(255,255,255,0.5); font-size:0.75rem;">
+                                #CUST001 | 株式会社サンプル代理店
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="header-create" style="display:none;" class="mb-1">
+                    <h1 class="text-xl font-bold">新規顧客情報登録</h1>
+                    <p class="text-sm text-muted">ID: (自動発行)</p>
+                </div>
+
+                <!-- タブナビ -->
+                <div class="tab-nav-sticky">
+                    <button class="active" onclick="switchTab('facility', this)">施設情報</button>
+                    <button onclick="switchTab('contract', this)">契約情報</button>
+                    <button onclick="switchTab('invoices', this)">請求履歴</button>
+                    <button onclick="switchTab('logs', this)">アクティビティログ</button>
+                </div>
+            </div>
+
+            <!-- スクロールコンテンツ -->
+            <div class="page-scrollable-content">
+
+                <!-- ===== 施設情報タブ ===== -->
+                <div id="tab-facility">
+                    <div class="flex flex-col gap-6">
+
+                        <!-- 施設情報カード -->
+                        <div class="card">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="font-bold text-lg">施設情報</h2>
+                                <div class="flex gap-2">
+                                    <button id="edit-btn" class="btn btn-secondary text-sm" onclick="toggleEditMode()">
+                                        <i data-lucide="edit-2" width="14"></i> 編集
+                                    </button>
+                                    <div id="edit-actions" class="flex gap-2" style="display: none;">
+                                        <button type="button" class="btn btn-secondary text-sm"
+                                            onclick="cancelEdit()">キャンセル</button>
+                                        <button type="button" class="btn btn-primary text-sm"
+                                            onclick="submitForm()">保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <form id="customer-form">
+                                <div class="info-grid" style="margin-bottom: 0;">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-bold text-muted uppercase mb-1">顧客名（法人・施設名）<span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" id="input-name"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="医療法人社団 青山会" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">代表者名</label>
+                                        <input type="text" id="input-rep"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="山田 太郎" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">電話番号</label>
+                                        <input type="text" id="input-tel"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="03-9876-5432" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">メールアドレス</label>
+                                        <input type="email" id="input-email"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="contact@aoyamakai.jp" disabled>
+                                    </div>
+                                    <div style="grid-column: span 2;">
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">本院所在地</label>
+                                        <input type="text" id="input-address"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="東京都港区南青山1-1-1" disabled>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">業態</label>
+                                        <select id="input-biztype"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            disabled>
+                                            <option value="">選択してください</option>
+                                            <option value="施術所" selected>施術所</option>
+                                            <option value="医療機関">医療機関</option>
+                                            <option value="トレーニング施設">トレーニング施設</option>
+                                            <option value="その他">その他</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">導入経路</label>
+                                        <select id="input-channel"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            disabled>
+                                            <option value="">選択してください</option>
+                                            <option value="Web直接">Web直接</option>
+                                            <option value="紹介" selected>紹介</option>
+                                            <option value="代理店">代理店</option>
+                                            <option value="イベント">イベント</option>
+                                            <option value="その他">その他</option>
+                                        </select>
+                                    </div>
+                                    <div style="grid-column: span 2;">
+                                        <label class="block text-xs font-bold text-muted uppercase mb-1">導入経路 備考</label>
+                                        <input type="text" id="input-channel-note"
+                                            class="input disabled:bg-slate-50 disabled:text-slate-500 disabled:border-transparent"
+                                            value="" placeholder="代理店名、紹介者名など" disabled>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 社内メモカード -->
+                        <div class="card">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="font-bold text-lg">メモ</h2>
+                                <div class="flex gap-2">
+                                    <button id="memo-edit-btn" class="btn btn-secondary text-sm"
+                                        onclick="toggleMemoEdit()">
+                                        <i data-lucide="edit-2" width="14"></i> 編集
+                                    </button>
+                                    <div id="memo-edit-actions" class="flex gap-2" style="display: none;">
+                                        <button type="button" class="btn btn-secondary text-sm"
+                                            onclick="cancelMemoEdit()">キャンセル</button>
+                                        <button type="button" class="btn btn-primary text-sm"
+                                            onclick="saveMemoEdit()">保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="memo-card">
+                                <textarea id="input-memo" class="memo-textarea" placeholder="メモを入力..." disabled>大手法人グループの本院。紹介経由で成約。
+現在、分析機能の活用についてフォローアップ中。来月に定例MTG予定。</textarea>
+                            </div>
+                        </div>
+
+                        <!-- 店舗一覧カード -->
+                        <div class="card">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-base">店舗一覧</h3>
+                                <button class="btn btn-secondary text-xs" onclick="addFacilityRow()">
+                                    <i data-lucide="plus" width="13"></i> 店舗を追加
+                                </button>
+                            </div>
+                            <div style="overflow-x: auto;">
+                                <table class="facility-table">
+                                    <thead>
+                                        <tr>
+                                            <th>店舗名</th>
+                                            <th>住所</th>
+                                            <th>電話番号</th>
+                                            <th>CLINICSアカウントID</th>
+                                            <th>担当者</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="facility-tbody">
+                                        <tr>
+                                            <td><input class="facility-input" value="青山美容クリニック 本院" disabled></td>
+                                            <td><input class="facility-input" value="東京都港区南青山1-1-1" disabled></td>
+                                            <td><input class="facility-input" value="03-9876-5432" disabled></td>
+                                            <td><input class="facility-input font-mono" value="CL001" disabled></td>
+                                            <td><input class="facility-input" value="田中 健太" disabled></td>
+                                            <td>
+                                                <div class="row-menu-wrap">
+                                                    <button class="row-menu-btn"
+                                                        onclick="toggleRowMenu(this)">⋯</button>
+                                                    <div class="row-menu-dropdown">
+                                                        <button class="row-menu-item" onclick="editFacilityRow(this)">
+                                                            <i data-lucide="edit-2" width="13"></i> 編集
+                                                        </button>
+                                                        <button class="row-menu-item danger"
+                                                            onclick="deleteFacilityRow(this)">
+                                                            <i data-lucide="trash-2" width="13"></i> 削除
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><input class="facility-input" value="青山美容クリニック 渋谷院" disabled></td>
+                                            <td><input class="facility-input" value="東京都渋谷区道玄坂2-2-2" disabled></td>
+                                            <td><input class="facility-input" value="03-5555-1234" disabled></td>
+                                            <td><input class="facility-input font-mono" value="CL002" disabled></td>
+                                            <td><input class="facility-input" value="鈴木 咲" disabled></td>
+                                            <td>
+                                                <div class="row-menu-wrap">
+                                                    <button class="row-menu-btn"
+                                                        onclick="toggleRowMenu(this)">⋯</button>
+                                                    <div class="row-menu-dropdown">
+                                                        <button class="row-menu-item" onclick="editFacilityRow(this)">
+                                                            <i data-lucide="edit-2" width="13"></i> 編集
+                                                        </button>
+                                                        <button class="row-menu-item danger"
+                                                            onclick="deleteFacilityRow(this)">
+                                                            <i data-lucide="trash-2" width="13"></i> 削除
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- ===== 契約情報タブ ===== -->
+                <div id="tab-contract" style="display: none;">
+                    <div class="flex flex-col gap-6">
+
+                        <!-- 契約履歴テーブル -->
+                        <div class="card">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="font-bold text-lg">契約情報</h2>
+                                <button class="btn btn-secondary text-xs" onclick="addContractRow()">
+                                    <i data-lucide="plus" width="13"></i> 記録を追加
+                                </button>
+                            </div>
+                            <div style="overflow-x: auto;">
+                                <table class="facility-table">
+                                    <thead>
+                                        <tr>
+                                            <th>契約開始日</th>
+                                            <th>次回更新日</th>
+                                            <th>契約プラン</th>
+                                            <th>代理店</th>
+                                            <th>対象アカウント</th>
+                                            <th>備考</th>
+                                            <th style="width:40px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contract-tbody">
+                                        <tr>
+                                            <td><input class="facility-input" type="date" value="2023-04-01" disabled>
+                                            </td>
+                                            <td><input class="facility-input" type="date" value="2024-03-31" disabled
+                                                    style="color:#dc2626; font-weight:600;"></td>
+                                            <td>
+                                                <select class="facility-input" disabled>
+                                                    <option selected>Posen月額プラン</option>
+                                                    <option>Posen一括プラン</option>
+                                                    <option>月々プラン</option>
+                                                    <option>Posen/FIDセットプラン</option>
+                                                </select>
+                                            </td>
+                                            <td><input class="facility-input" value="株式会社サンプル代理店" disabled></td>
+                                            <td><input class="facility-input" value="青山美容クリニック 本院" disabled></td>
+                                            <td><input class="facility-input" value="" placeholder="備考" disabled></td>
+                                            <td>
+                                                <div class="row-menu-wrap">
+                                                    <button class="row-menu-btn"
+                                                        onclick="toggleRowMenu(this)">⋯</button>
+                                                    <div class="row-menu-dropdown">
+                                                        <button class="row-menu-item" onclick="editContractRow(this)">
+                                                            <i data-lucide="edit-2" width="13"></i> 編集
+                                                        </button>
+                                                        <button class="row-menu-item danger"
+                                                            onclick="deleteContractRow(this)">
+                                                            <i data-lucide="trash-2" width="13"></i> 削除
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><input class="facility-input" type="date" value="2022-04-01" disabled>
+                                            </td>
+                                            <td><input class="facility-input" type="date" value="2023-03-31" disabled>
+                                            </td>
+                                            <td>
+                                                <select class="facility-input" disabled>
+                                                    <option>Posen月額プラン</option>
+                                                    <option selected>月々プラン</option>
+                                                    <option>Posen一括プラン</option>
+                                                    <option>Posen/FIDセットプラン</option>
+                                                </select>
+                                            </td>
+                                            <td><input class="facility-input" value="直販" disabled></td>
+                                            <td><input class="facility-input" value="青山美容クリニック 本院" disabled></td>
+                                            <td><input class="facility-input" value="初回契約" placeholder="備考" disabled>
+                                            </td>
+                                            <td>
+                                                <div class="row-menu-wrap">
+                                                    <button class="row-menu-btn"
+                                                        onclick="toggleRowMenu(this)">⋯</button>
+                                                    <div class="row-menu-dropdown">
+                                                        <button class="row-menu-item" onclick="editContractRow(this)">
+                                                            <i data-lucide="edit-2" width="13"></i> 編集
+                                                        </button>
+                                                        <button class="row-menu-item danger"
+                                                            onclick="deleteContractRow(this)">
+                                                            <i data-lucide="trash-2" width="13"></i> 削除
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- アカウント数サマリー -->
+                        <div class="card" style="padding: 12px 20px;">
+                            <div class="flex items-center gap-6 flex-wrap">
+                                <span class="text-sm font-bold text-muted" style="white-space:nowrap;">アカウント数</span>
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="building-2" width="14" style="color:#2563eb;"></i>
+                                    <span class="font-bold" style="color:#2563eb;">2</span>
+                                    <span class="text-xs text-muted">Clinicsアカウント</span>
+                                </div>
+                                <div class="flex items-center gap-2 ml-2 pl-4 border-l border-slate-200">
+                                    <i data-lucide="users" width="14" style="color:#475569;"></i>
+                                    <span class="font-bold" style="color:#475569;">8</span>
+                                    <span class="text-xs text-muted">Usersアカウント</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="user-check" width="14" style="color:#16a34a;"></i>
+                                    <span class="font-bold" style="color:#16a34a;">2</span>
+                                    <span class="text-xs text-muted">メイン</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="briefcase" width="14" style="color:#7c3aed;"></i>
+                                    <span class="font-bold" style="color:#7c3aed;">2</span>
+                                    <span class="text-xs text-muted">事務</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="user" width="14" style="color:#059669;"></i>
+                                    <span class="font-bold" style="color:#059669;">4</span>
+                                    <span class="text-xs text-muted">スタッフ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 所属アカウント -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-base">所属アカウント</h3>
+                                <button class="btn btn-secondary text-sm"
+                                    onclick="window.location.href='account-detail.html?mode=create&customer_id=CUST001'">
+                                    <i data-lucide="plus" width="14"></i> Clinicsアカウントを追加
+                                </button>
+                            </div>
+                            <div class="card p-0">
+                                <!-- CL001 -->
+                                <div>
+                                    <div class="clinic-row-header" onclick="toggleClinic('cl001')">
+                                        <i data-lucide="chevron-right" width="16" class="clinic-chevron open"
+                                            id="chevron-cl001" style="color:#2563eb;"></i>
+                                        <span class="font-mono text-sm text-muted" style="width:60px;">CL001</span>
+                                        <span class="font-bold" style="flex:1;">青山美容クリニック 本院</span>
+                                        <span class="badge badge-success" style="margin-right:8px;">有効</span>
+                                        <span class="badge badge-info" style="margin-right:8px;">基本機能</span>
+                                        <span class="badge badge-info" style="margin-right:16px;">4DF連携</span>
+                                        <span class="text-xs text-muted" style="white-space:nowrap;">ユーザー 4名</span>
+                                        <a href="account-detail.html" class="btn btn-secondary text-xs ml-3"
+                                            onclick="event.stopPropagation()">詳細</a>
+                                    </div>
+                                    <div id="clinic-users-cl001">
+                                        <table class="user-sub-table" style="width:100%;">
+                                            <thead>
+                                                <tr style="background:#f8fafc;">
+                                                    <td
+                                                        style="padding:7px 16px 7px 44px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        アカウント名</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        ログインID</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        権限</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        最終ログイン</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        有効期限</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        ステータス</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;border-bottom:1px solid #f1f5f9;">
+                                                    </td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="hover-actions-row"
+                                                    onclick="window.location.href='account-user-detail.html'"
+                                                    style="cursor:pointer;">
+                                                    <td style="padding:10px 16px 10px 44px;" class="font-bold">青山本院-01
+                                                    </td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">
+                                                        honin01@aoyama.example</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="role-badge role-main">メイン</span></td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2026-03-08
+                                                        09:12</td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">—</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="badge badge-success">有効</span></td>
+                                                    <td style="padding:10px 16px;text-align:right;"><i
+                                                            data-lucide="chevron-right" width="14"
+                                                            class="text-slate-400"></i></td>
+                                                </tr>
+                                                <tr class="hover-actions-row"
+                                                    onclick="window.location.href='account-user-detail.html'"
+                                                    style="cursor:pointer;">
+                                                    <td style="padding:10px 16px 10px 44px;" class="font-bold">青山本院-02
+                                                    </td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">
+                                                        honin02@aoyama.example</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="role-badge role-office">事務</span></td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2026-03-07
+                                                        14:35</td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">—</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="badge badge-success">有効</span></td>
+                                                    <td style="padding:10px 16px;text-align:right;"><i
+                                                            data-lucide="chevron-right" width="14"
+                                                            class="text-slate-400"></i></td>
+                                                </tr>
+                                                <tr class="hover-actions-row"
+                                                    onclick="window.location.href='account-user-detail.html'"
+                                                    style="cursor:pointer;">
+                                                    <td style="padding:10px 16px 10px 44px;" class="font-bold">青山本院-03
+                                                    </td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">
+                                                        honin03@aoyama.example</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="role-badge role-staff">スタッフ</span></td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2026-03-01
+                                                        11:00</td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">—</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="badge badge-success">有効</span></td>
+                                                    <td style="padding:10px 16px;text-align:right;"><i
+                                                            data-lucide="chevron-right" width="14"
+                                                            class="text-slate-400"></i></td>
+                                                </tr>
+                                                <tr class="hover-actions-row"
+                                                    onclick="window.location.href='account-user-detail.html'"
+                                                    style="cursor:pointer;">
+                                                    <td style="padding:10px 16px 10px 44px;" class="font-bold">青山本院-04
+                                                    </td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">
+                                                        honin04@aoyama.example</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="role-badge role-staff">スタッフ</span></td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2025-12-10
+                                                        08:22</td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2025-03-31
+                                                    </td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="badge badge-warning">期限切れ</span></td>
+                                                    <td style="padding:10px 16px;text-align:right;"><i
+                                                            data-lucide="chevron-right" width="14"
+                                                            class="text-slate-400"></i></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div style="padding:10px 16px 10px 44px;border-top:1px solid #f1f5f9;">
+                                            <button class="btn btn-secondary text-xs"
+                                                onclick="window.location.href='account-user-detail.html?mode=create&clinic_id=CL001'">
+                                                <i data-lucide="user-plus" width="13"></i> Usersアカウントを追加
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- CL002 -->
+                                <div style="border-top:1px solid var(--color-slate-100);">
+                                    <div class="clinic-row-header" onclick="toggleClinic('cl002')">
+                                        <i data-lucide="chevron-right" width="16" class="clinic-chevron"
+                                            id="chevron-cl002" style="color:#2563eb;"></i>
+                                        <span class="font-mono text-sm text-muted" style="width:60px;">CL002</span>
+                                        <span class="font-bold" style="flex:1;">青山美容クリニック 渋谷院</span>
+                                        <span class="badge badge-success" style="margin-right:8px;">有効</span>
+                                        <span class="badge badge-info" style="margin-right:16px;">基本機能</span>
+                                        <span class="text-xs text-muted" style="white-space:nowrap;">ユーザー 2名</span>
+                                        <a href="account-detail.html" class="btn btn-secondary text-xs ml-3"
+                                            onclick="event.stopPropagation()">詳細</a>
+                                    </div>
+                                    <div id="clinic-users-cl002" style="display:none;">
+                                        <table class="user-sub-table" style="width:100%;">
+                                            <thead>
+                                                <tr style="background:#f8fafc;">
+                                                    <td
+                                                        style="padding:7px 16px 7px 44px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        アカウント名</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        ログインID</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        権限</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        最終ログイン</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        有効期限</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#94a3b8;border-bottom:1px solid #f1f5f9;">
+                                                        ステータス</td>
+                                                    <td
+                                                        style="padding:7px 16px;font-size:0.72rem;border-bottom:1px solid #f1f5f9;">
+                                                    </td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="hover-actions-row"
+                                                    onclick="window.location.href='account-user-detail.html'"
+                                                    style="cursor:pointer;">
+                                                    <td style="padding:10px 16px 10px 44px;" class="font-bold">渋谷院-01
+                                                    </td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">
+                                                        shibuya01@aoyama.example</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="role-badge role-main">メイン</span></td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2026-03-09
+                                                        10:01</td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">—</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="badge badge-success">有効</span></td>
+                                                    <td style="padding:10px 16px;text-align:right;"><i
+                                                            data-lucide="chevron-right" width="14"
+                                                            class="text-slate-400"></i></td>
+                                                </tr>
+                                                <tr class="hover-actions-row"
+                                                    onclick="window.location.href='account-user-detail.html'"
+                                                    style="cursor:pointer;">
+                                                    <td style="padding:10px 16px 10px 44px;" class="font-bold">渋谷院-02
+                                                    </td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">
+                                                        shibuya02@aoyama.example</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="role-badge role-office">事務</span></td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">2026-03-06
+                                                        16:48</td>
+                                                    <td style="padding:10px 16px;" class="text-sm text-muted">—</td>
+                                                    <td style="padding:10px 16px;"><span
+                                                            class="badge badge-success">有効</span></td>
+                                                    <td style="padding:10px 16px;text-align:right;"><i
+                                                            data-lucide="chevron-right" width="14"
+                                                            class="text-slate-400"></i></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div style="padding:10px 16px 10px 44px;border-top:1px solid #f1f5f9;">
+                                            <button class="btn btn-secondary text-xs"
+                                                onclick="window.location.href='account-user-detail.html?mode=create&clinic_id=CL002'">
+                                                <i data-lucide="user-plus" width="13"></i> Usersアカウントを追加
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- ===== 請求履歴タブ ===== -->
+                <div id="tab-invoices" style="display: none;">
+                    <div class="card p-0" style="overflow-x:auto;">
+                        <table class="data-table w-full" style="min-width:900px;">
+                            <thead>
+                                <tr>
+                                    <th>請求日</th>
+                                    <th>請求書No</th>
+                                    <th>請求形式</th>
+                                    <th>売上計上月</th>
+                                    <th>項目</th>
+                                    <th>定価</th>
+                                    <th>値引き</th>
+                                    <th>請求額<br><span style="font-weight:400;font-size:0.7em;">(税込/税抜)</span></th>
+                                    <th>入金日</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-02-01</td>
+                                    <td class="font-mono">INV-0123</td>
+                                    <td><span class="badge badge-info">MF請求</span></td>
+                                    <td class="text-xs text-muted">1ヶ月<br>2024-01〜01-31</td>
+                                    <td class="text-xs">利用料（月額）<br>オプション</td>
+                                    <td class="font-mono">¥50,000</td>
+                                    <td class="font-mono text-muted">-¥0</td>
+                                    <td class="font-mono">¥55,000<br><span class="text-xs text-muted">¥50,000</span>
+                                    </td>
+                                    <td><span class="badge badge-success">2024-02-10</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2024-01-01</td>
+                                    <td class="font-mono">INV-0015</td>
+                                    <td><span class="badge" style="background:#f3e8ff;color:#7e22ce;">square</span>
+                                    </td>
+                                    <td class="text-xs text-muted">1ヶ月<br>2023-12〜12-31</td>
+                                    <td class="text-xs">利用料（月額）<br>初期費用</td>
+                                    <td class="font-mono">¥100,000</td>
+                                    <td class="font-mono text-danger">-¥10,000</td>
+                                    <td class="font-mono">¥99,000<br><span class="text-xs text-muted">¥90,000</span>
+                                    </td>
+                                    <td><span class="badge badge-success">2024-01-10</span></td>
+                                </tr>
+                                <tr>
+                                    <td>2023-12-01</td>
+                                    <td class="font-mono">INV-0008</td>
+                                    <td><span class="badge badge-info">MF請求</span></td>
+                                    <td class="text-xs text-muted">1ヶ月<br>2023-11〜11-30</td>
+                                    <td class="text-xs">利用料（月額）</td>
+                                    <td class="font-mono">¥50,000</td>
+                                    <td class="font-mono text-muted">-¥0</td>
+                                    <td class="font-mono">¥55,000<br><span class="text-xs text-muted">¥50,000</span>
+                                    </td>
+                                    <td><span class="badge badge-success">2023-12-10</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ===== アクティビティログタブ ===== -->
+                <div id="tab-logs" style="display: none;">
+                    <style>
+                        /* アクティビティログ */
+                        .log-comment-box {
+                            background: #fff;
+                            border: 1px solid var(--color-slate-200, #e2e8f0);
+                            border-radius: 12px;
+                            overflow: hidden;
+                            transition: box-shadow 0.15s, border-color 0.15s;
+                        }
+
+                        .log-comment-box:focus-within {
+                            border-color: var(--color-primary-300, #93c5fd);
+                            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                        }
+
+                        .log-comment-textarea {
+                            width: 100%;
+                            border: none;
+                            resize: none;
+                            outline: none;
+                            padding: 14px 16px;
+                            font-size: 0.875rem;
+                            font-family: inherit;
+                            line-height: 1.6;
+                            color: var(--color-slate-800);
+                            min-height: 80px;
+                            max-height: 200px;
+                            overflow-y: auto;
+                            box-sizing: border-box;
+                            background: transparent;
+                        }
+
+                        .log-comment-actions {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 8px 12px;
+                            border-top: 1px solid #f1f5f9;
+                            background: #f8fafc;
+                        }
+
+                        .log-type-select {
+                            border: 1px solid #e2e8f0;
+                            border-radius: 6px;
+                            padding: 4px 8px;
+                            font-size: 0.8rem;
+                            font-family: inherit;
+                            color: var(--color-slate-600);
+                            background: #fff;
+                            cursor: pointer;
+                            outline: none;
+                        }
+
+                        /* タイムライン */
+                        .activity-timeline {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0;
+                        }
+
+                        .activity-entry {
+                            display: flex;
+                            gap: 16px;
+                        }
+
+                        .activity-entry:last-child .timeline-line {
+                            display: none;
+                        }
+
+                        .timeline-dot-wrap {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            flex-shrink: 0;
+                            width: 28px;
+                        }
+
+                        .timeline-dot {
+                            width: 10px;
+                            height: 10px;
+                            border-radius: 50%;
+                            border: 2px solid #fff;
+                            flex-shrink: 0;
+                            margin-top: 18px;
+                            box-shadow: 0 0 0 2px;
+                        }
+
+                        .timeline-dot.type-comment {
+                            background: var(--color-primary-500, #3b82f6);
+                        }
+
+                        .timeline-dot.type-system {
+                            background: var(--color-slate-400);
+                        }
+
+                        .timeline-dot.type-memo {
+                            background: #f59e0b;
+                        }
+
+                        .timeline-line {
+                            width: 2px;
+                            flex: 1;
+                            background: var(--color-slate-100, #f1f5f9);
+                            margin-top: 4px;
+                            min-height: 16px;
+                        }
+
+                        .activity-body {
+                            flex: 1;
+                            padding: 12px 0 16px;
+                        }
+
+                        .activity-header {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin-bottom: 4px;
+                        }
+
+                        .activity-time {
+                            font-size: 0.75rem;
+                            color: var(--color-slate-400);
+                        }
+
+                        .activity-type-badge {
+                            font-size: 0.68rem;
+                            padding: 1px 6px;
+                            border-radius: 4px;
+                            font-weight: 700;
+                        }
+
+                        .activity-type-badge.comment {
+                            background: #dbeafe;
+                            color: #1d4ed8;
+                        }
+
+                        .activity-type-badge.system {
+                            background: #f1f5f9;
+                            color: #475569;
+                        }
+
+                        .activity-type-badge.memo {
+                            background: #fef9c3;
+                            color: #92400e;
+                        }
+
+                        .activity-title {
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            color: var(--color-slate-800);
+                        }
+
+                        .activity-content {
+                            font-size: 0.875rem;
+                            color: var(--color-slate-600);
+                            margin-top: 4px;
+                            line-height: 1.6;
+                            white-space: pre-wrap;
+                            word-break: break-word;
+                        }
+
+                        .activity-content-card {
+                            background: #f8fafc;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 8px;
+                            padding: 10px 14px;
+                            font-size: 0.875rem;
+                            color: var(--color-slate-700);
+                            margin-top: 6px;
+                            line-height: 1.7;
+                            white-space: pre-wrap;
+                            word-break: break-word;
+                        }
+
+                        .activity-delete-btn {
+                            background: none;
+                            border: none;
+                            cursor: pointer;
+                            color: var(--color-slate-300);
+                            padding: 2px 4px;
+                            border-radius: 4px;
+                            margin-left: auto;
+                            opacity: 0;
+                            transition: opacity 0.15s, color 0.15s;
+                            flex-shrink: 0;
+                        }
+
+                        .activity-entry:hover .activity-delete-btn {
+                            opacity: 1;
+                        }
+
+                        .activity-delete-btn:hover {
+                            color: var(--color-danger, #ef4444);
+                        }
+
+                        /* フィルターバー */
+                        .log-filter-bar {
+                            display: flex;
+                            gap: 6px;
+                            margin-bottom: 16px;
+                        }
+
+                        .log-filter-chip {
+                            padding: 4px 12px;
+                            border-radius: 999px;
+                            border: 1px solid var(--color-slate-200);
+                            background: #fff;
+                            font-size: 0.8rem;
+                            cursor: pointer;
+                            font-family: inherit;
+                            color: var(--color-slate-600);
+                            transition: all 0.12s;
+                        }
+
+                        .log-filter-chip.active {
+                            background: var(--color-primary-50, #eff6ff);
+                            border-color: var(--color-primary-300);
+                            color: var(--color-primary-700);
+                            font-weight: 600;
+                        }
+                    </style>
+
+                    <!-- コメント入力エリア -->
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div style="display:flex; gap:12px; align-items:flex-start;">
+                            <div
+                                style="width:32px;height:32px;border-radius:50%;background:var(--color-primary-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+                                <i data-lucide="user" width="16" style="color:var(--color-primary-600);"></i>
+                            </div>
+                            <div style="flex:1;">
+                                <div class="log-comment-box">
+                                    <!-- タイトル -->
+                                    <input id="log-title-input" type="text" placeholder="タイトル（例：電話対応、フォローアップ）"
+                                        style="width:100%;border:none;border-bottom:1px solid #f1f5f9;padding:12px 16px 10px;font-size:0.875rem;font-weight:600;color:var(--color-slate-800);background:transparent;outline:none;box-sizing:border-box;">
+                                    <!-- 内容 -->
+                                    <textarea id="log-comment-input" class="log-comment-textarea"
+                                        placeholder="内容を入力... (Ctrl+Enterで送信)" style="min-height:72px;"></textarea>
+                                    <div class="log-comment-actions">
+                                        <select id="log-type-select" class="log-type-select">
+                                            <option value="memo">📝 社内メモ</option>
+                                        </select>
+                                        <button class="btn btn-primary text-sm" onclick="addLogEntry()"
+                                            style="padding:6px 14px;">
+                                            <i data-lucide="send" width="13"></i> 投稿
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- フィルター -->
+                    <div class="log-filter-bar">
+                        <button class="log-filter-chip active" onclick="filterLogs('all', this)">すべて</button>
+                        <button class="log-filter-chip" onclick="filterLogs('memo', this)">📝 社内メモ</button>
+                        <button class="log-filter-chip" onclick="filterLogs('system', this)">🔧 システム</button>
+                    </div>
+
+                    <!-- タイムライン -->
+                    <div class="activity-timeline" id="activity-timeline"></div>
+                </div>
+
+            </div><!-- /page-scrollable-content -->
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') setupCreateMode();
+        });
+        // DOMContentLoadedが既に発火済みの場合も対応
+        if (document.readyState !== 'loading') {
+            lucide.createIcons();
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') setupCreateMode();
+        }
+
+        // ===== タブ =====
+        function switchTab(tabId, btnEl) {
+            ['facility', 'accounts', 'contract', 'invoices', 'logs'].forEach(id => {
+                const el = document.getElementById('tab-' + id);
+                if (el) el.style.display = 'none';
+            });
+            document.getElementById('tab-' + tabId).style.display = '';
+            document.querySelectorAll('.tab-nav-sticky button').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+        }
+
+        // ===== Clinicsアカウント展開 =====
+        function toggleClinic(id) {
+            const area = document.getElementById('clinic-users-' + id);
+            const chevron = document.getElementById('chevron-' + id);
+            const isOpen = area.style.display !== 'none';
+            area.style.display = isOpen ? 'none' : '';
+            chevron.classList.toggle('open', !isOpen);
+            lucide.createIcons();
+        }
+
+        // ===== 施設情報フォーム =====
+        let isFormEditing = false;
+        function toggleEditMode() {
+            const form = document.getElementById('customer-form');
+            const inputs = form.querySelectorAll('input, select');
+            isFormEditing = !isFormEditing;
+            inputs.forEach(el => { el.disabled = !isFormEditing; });
+            const formCard = form.closest('.card');
+            if (isFormEditing) {
+                formCard.style.boxShadow = '0 0 0 2px var(--color-primary-100), 0 4px 6px -1px rgba(0,0,0,0.08)';
+                formCard.style.borderColor = 'var(--color-primary-200)';
+                document.getElementById('edit-actions').style.display = 'flex';
+                document.getElementById('edit-btn').style.display = 'none';
+            } else {
+                formCard.style.boxShadow = '';
+                formCard.style.borderColor = '';
+                document.getElementById('edit-actions').style.display = 'none';
+                document.getElementById('edit-btn').style.display = 'inline-flex';
+            }
+        }
+
+        // ===== 社内メモ編集 =====
+        let isMemoEditing = false;
+        function toggleMemoEdit() {
+            const memo = document.getElementById('input-memo');
+            isMemoEditing = !isMemoEditing;
+            memo.disabled = !isMemoEditing;
+            const memoCard = memo.closest('.card');
+            if (isMemoEditing) {
+                memo.focus();
+                memoCard.style.boxShadow = '0 0 0 2px var(--color-primary-100), 0 4px 6px -1px rgba(0,0,0,0.08)';
+                memoCard.style.borderColor = 'var(--color-primary-200)';
+                document.getElementById('memo-edit-actions').style.display = 'flex';
+                document.getElementById('memo-edit-btn').style.display = 'none';
+            } else {
+                memoCard.style.boxShadow = '';
+                memoCard.style.borderColor = '';
+                document.getElementById('memo-edit-actions').style.display = 'none';
+                document.getElementById('memo-edit-btn').style.display = 'inline-flex';
+            }
+        }
+        function cancelMemoEdit() { if (isMemoEditing) toggleMemoEdit(); }
+        async function saveMemoEdit() {
+            const btn = document.querySelector('#memo-edit-actions button.btn-primary');
+            setButtonLoading(btn, true, '保存中...');
+            await new Promise(r => setTimeout(r, 700));
+            setButtonLoading(btn, false);
+            if (isMemoEditing) toggleMemoEdit();
+            showToast('社内メモを保存しました', 'success');
+        }
+        function cancelEdit() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') { window.location.href = 'customers.html'; return; }
+            if (isFormEditing) toggleEditMode();
+        }
+        async function submitForm() {
+            const btn = document.querySelector('#edit-actions button.btn-primary');
+            setButtonLoading(btn, true, '保存中...');
+            await new Promise(r => setTimeout(r, 900));
+            setButtonLoading(btn, false);
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'create') {
+                showToast('顧客情報を登録しました', 'success');
+                setTimeout(() => window.location.href = 'customers.html', 1000);
+            } else {
+                if (isFormEditing) toggleEditMode();
+                showToast('施設情報を保存しました', 'success');
+            }
+        }
+
+        // ===== 契約情報編集 =====
+        let isContractEditing = false;
+        function toggleContractEdit() {
+            isContractEditing = !isContractEditing;
+            ['contract-agency', 'contract-plan'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !isContractEditing;
+            });
+            document.getElementById('contract-edit-actions').style.display = isContractEditing ? 'block' : 'none';
+            document.querySelector('[onclick="toggleContractEdit()"]').style.display = isContractEditing ? 'none' : 'inline-flex';
+        }
+        function cancelContractEdit() { if (isContractEditing) toggleContractEdit(); }
+        async function saveContractEdit() {
+            const btn = document.querySelector('[onclick="saveContractEdit()"]');
+            setButtonLoading(btn, true, '保存中...');
+            await new Promise(r => setTimeout(r, 900));
+            setButtonLoading(btn, false);
+            if (isContractEditing) toggleContractEdit();
+            showToast('契約情報を保存しました', 'success');
+        }
+
+        // ===== 店舗テーブル =====
+        function facilityRowMenuHTML() {
+            return `
+                <div class="row-menu-wrap">
+                    <button class="row-menu-btn" onclick="toggleRowMenu(this)">⋯</button>
+                    <div class="row-menu-dropdown">
+                        <button class="row-menu-item" onclick="editFacilityRow(this)">
+                            <i data-lucide="edit-2" width="13"></i> 編集
+                        </button>
+                        <button class="row-menu-item danger" onclick="deleteFacilityRow(this)">
+                            <i data-lucide="trash-2" width="13"></i> 削除
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        function addFacilityRow() {
+            const tbody = document.getElementById('facility-tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input class="facility-input" placeholder="店舗名"></td>
+                <td><input class="facility-input" placeholder="住所"></td>
+                <td><input class="facility-input" placeholder="電話番号"></td>
+                <td><input class="facility-input font-mono" placeholder="CL000"></td>
+                <td><input class="facility-input" placeholder="担当者名"></td>
+                <td>${facilityRowMenuHTML()}</td>
+            `;
+            tbody.appendChild(tr);
+            lucide.createIcons();
+            // 新規行は即度編集展開状態 (inputs は disabled なしのまま)
+        }
+
+        function toggleRowMenu(btn) {
+            const dropdown = btn.nextElementSibling;
+            const isOpen = dropdown.classList.contains('open');
+            // 他のドロップダウンを全て閉じる
+            document.querySelectorAll('.row-menu-dropdown.open').forEach(d => d.classList.remove('open'));
+            if (!isOpen) dropdown.classList.add('open');
+        }
+
+        function editFacilityRow(btn) {
+            const tr = btn.closest('tr');
+            const dropdown = btn.closest('.row-menu-dropdown');
+            dropdown.classList.remove('open');
+
+            const inputs = tr.querySelectorAll('.facility-input');
+            const isEditing = !inputs[0].disabled;
+
+            if (isEditing) {
+                // 保存: disabledに戻す
+                inputs.forEach(i => i.disabled = true);
+                btn.innerHTML = '<i data-lucide="edit-2" width="13"></i> 編集';
+                tr.classList.remove('row-saving');
+                lucide.createIcons();
+                showToast('店舗情報を保存しました', 'success');
+            } else {
+                // 編集開始: disabled記国除去
+                inputs.forEach(i => i.disabled = false);
+                inputs[0].focus();
+                btn.innerHTML = '<i data-lucide="save" width="13"></i> 保存';
+                tr.classList.add('row-saving');
+                lucide.createIcons();
+            }
+        }
+
+        function deleteFacilityRow(btn) {
+            const tr = btn.closest('tr');
+            const name = tr.querySelector('.facility-input')?.value || 'この店舗';
+            showConfirmModal({
+                title: '店舗の削除',
+                message: `「${name}」を店舗一覧から削除しますか？`,
+                confirmText: '削除',
+                confirmColor: 'danger',
+                onConfirm: () => { tr.remove(); }
+            });
+        }
+
+        // ===== 契約テーブル =====
+        function addContractRow() {
+            const tbody = document.getElementById('contract-tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input class="facility-input" type="date"></td>
+                <td><input class="facility-input" type="date"></td>
+                <td>
+                    <select class="facility-input">
+                        <option>Posen月額プラン</option>
+                        <option>Posen一括プラン</option>
+                        <option>月々プラン</option>
+                        <option>Posen/FIDセットプラン</option>
+                    </select>
+                </td>
+                <td><input class="facility-input" placeholder="代理店名"></td>
+                <td><input class="facility-input" placeholder="店舗名"></td>
+                <td><input class="facility-input" placeholder="備考"></td>
+                <td>
+                    <div class="row-menu-wrap">
+                        <button class="row-menu-btn" onclick="toggleRowMenu(this)">⋯</button>
+                        <div class="row-menu-dropdown">
+                            <button class="row-menu-item" onclick="editContractRow(this)">
+                                <i data-lucide="edit-2" width="13"></i> 編集
+                            </button>
+                            <button class="row-menu-item danger" onclick="deleteContractRow(this)">
+                                <i data-lucide="trash-2" width="13"></i> 削除
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            lucide.createIcons();
+        }
+
+        function editContractRow(btn) {
+            const tr = btn.closest('tr');
+            const dropdown = btn.closest('.row-menu-dropdown');
+            dropdown.classList.remove('open');
+            const inputs = tr.querySelectorAll('.facility-input');
+            const isEditing = !inputs[0].disabled;
+            if (isEditing) {
+                inputs.forEach(i => i.disabled = true);
+                btn.innerHTML = '<i data-lucide="edit-2" width="13"></i> 編集';
+                tr.classList.remove('row-saving');
+                lucide.createIcons();
+                showToast('契約情報を保存しました', 'success');
+            } else {
+                inputs.forEach(i => i.disabled = false);
+                inputs[0].focus();
+                btn.innerHTML = '<i data-lucide="save" width="13"></i> 保存';
+                tr.classList.add('row-saving');
+                lucide.createIcons();
+            }
+        }
+
+        function deleteContractRow(btn) {
+            const tr = btn.closest('tr');
+            showConfirmModal({
+                title: '契約情報の削除',
+                message: 'この契約情報を削除しますか？',
+                confirmText: '削除',
+                confirmColor: 'danger',
+                onConfirm: () => { tr.remove(); }
+            });
+        }
+
+        function removeFacilityRow(btn) {
+            btn.closest('tr').remove();
+        }
+
+        // ===== 解約処理 =====
+        function handleChurn() {
+            showConfirmModal({
+                title: '解約処理の実行',
+                message: 'この顧客を「解約」ステータスに変更しますか？<br>解約日として今日の日付が記録されます。',
+                confirmText: '解約処理を実行',
+                confirmColor: 'danger',
+                onConfirm: async () => {
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            showToast('解約処理が完了しました', 'default');
+                            document.getElementById('header-status').className = 'badge badge-danger';
+                            document.getElementById('header-status').textContent = '解約';
+                            resolve();
+                        }, 1000);
+                    });
+                }
+            });
+        }
+
+        // ===== 新規作成モード =====
+        function setupCreateMode() {
+            document.getElementById('header-detail').style.display = 'none';
+            document.getElementById('header-create').style.display = '';
+            document.title = 'Posen Back Office - 新規顧客情報登録';
+            document.querySelectorAll('.tab-nav-sticky button').forEach((btn, i) => { if (i > 0) btn.style.display = 'none'; });
+            ['input-name', 'input-rep', 'input-tel', 'input-address', 'input-email', 'input-memo', 'input-channel-note'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+            // セレクトを初期値（空）に戻す
+            ['input-biztype', 'input-channel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.selectedIndex = 0;
+            });
+
+            // 店舗一覧をクリア
+            const tbody = document.getElementById('facility-tbody');
+            if (tbody) tbody.innerHTML = '';
+
+            toggleEditMode();
+            document.getElementById('edit-btn').style.display = 'none';
+        }
+
+        // ===== アクティビティログ =====
+        // ===== ステータス変更 =====
+        const statusColors = {
+            'リード獲得': { color: '#64748b', fill: '#64748b' },
+            '利用準備中': { color: '#d97706', fill: '#d97706' },
+            '利用中': { color: '#16a34a', fill: '#16a34a' },
+            '解約': { color: '#dc2626', fill: '#dc2626' },
+            '無効': { color: '#94a3b8', fill: '#94a3b8' },
+        };
+        function onStatusChange(sel) {
+            const c = statusColors[sel.value] || { color: '#64748b', fill: '#64748b' };
+            sel.style.color = c.color;
+            const icon = document.getElementById('status-icon');
+            if (icon) { icon.style.color = c.color; icon.style.fill = c.fill; }
+            // コントラクト情報タブのステータスも連動
+            const contractSel = document.getElementById('contract-status');
+            if (contractSel) contractSel.value = sel.value;
+            showToast('ステータスを「' + sel.value + '」に変更しました', 'success');
+        }
+
+        let activityLogs = [
+            { id: 1, type: 'memo', time: '2024-02-25 10:30', staff: '田中 健太', title: '電話対応', content: '更新の意向を確認。継続利用に前向きとのこと。来月の定例MTGで詳細を詰める。' },
+            { id: 2, type: 'system', time: '2024-02-10 10:15', staff: 'システム', title: '入金確認', content: '2024年1月分の入金を確認しました。（¥55,000）', comments: [] },
+            { id: 3, type: 'memo', time: '2024-02-05 16:45', staff: '鈴木 咲', title: 'フォローアップメモ', content: '先月の勉強会リクエストについて、3月15日（金）14:00〜でオンライン実施の方向で調整中。' },
+            { id: 4, type: 'memo', time: '2024-01-20 16:30', staff: '田中 健太', title: '操作勉強会の依頼', content: '顧客より、新しいユーザー様向けの操作勉強会の依頼がありました。日程調整中です。' },
+            { id: 5, type: 'system', time: '2024-01-14 10:30', staff: 'システム', title: 'Clinicsアカウント追加', content: 'CL002（青山美容クリニック 渋谷院）を追加しました。', comments: [] },
+            { id: 6, type: 'memo', time: '2024-01-08 11:00', staff: '鈴木 咲', title: '年末挨拶対応', content: '先方から年末のご挨拶メール受信。年明けに訪問アポ打診あり。' },
+            { id: 7, type: 'system', time: '2023-12-01 09:00', staff: 'システム', title: '新規契約・利用開始', content: 'アカウント発行完了。Posen月額プランで利用開始。\n導入経緯：株式会社サンプル代理店の紹介。分析機能への興味が導入の決め手。', comments: [{ id: 701, staff: '田中 健太', time: '2023-12-01 10:00', text: '導入時に操作説明を実施。初回ログインも完了確認済み。' }] },
+            { id: 8, type: 'memo', time: '2023-11-15 14:00', staff: '田中 健太', title: '商談メモ', content: 'デモ実施。分析ダッシュボードへの反応が良好。来月の本契約に向けて稟議中とのこと。' },
+            { id: 9, type: 'memo', time: '2023-10-20 15:30', staff: '鈴木 咲', title: '初回ヒアリング', content: 'ニーズ確認。現在は表計算ソフトで姿勢分析データを管理しており、工数削減が主な課題。' }
+        ];
+
+        let currentLogFilter = 'all';
+        // システムログのコメント追記モードID
+        let expandedCommentId = null;
+
+        function renderLogs() {
+            const container = document.getElementById('activity-timeline');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const filtered = activityLogs.filter(log => currentLogFilter === 'all' || log.type === currentLogFilter);
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--color-slate-400);font-size:0.875rem;">表示するログがありません</div>';
+                return;
+            }
+
+            filtered.forEach(log => {
+                const isSystem = log.type === 'system';
+                let badgeClass = '', badgeText = '';
+                if (log.type === 'memo') { badgeClass = 'memo'; badgeText = '📝 社内メモ'; }
+                else { badgeClass = 'system'; badgeText = '🔧 システム'; }
+
+                // システムログへの追加コメント
+                const sysComments = (isSystem && log.comments) ? log.comments : [];
+                const sysCommentHtml = sysComments.map(c => `
+                    <div style="display:flex;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #f1f5f9;align-items:flex-start;">
+                        <div style="width:22px;height:22px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i data-lucide="user" width="12" style="color:#2563eb;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:0.75rem;color:#64748b;margin-bottom:2px;">${c.staff}・${c.time}</div>
+                            <div style="font-size:0.85rem;color:#334155;">${escapeHtml(c.text)}</div>
+                        </div>
+                        <button onclick="deleteSysComment(${log.id}, ${c.id})" style="background:none;border:none;cursor:pointer;color:#cbd5e1;padding:2px;" title="削除">
+                            <i data-lucide="trash-2" width="12"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                const isExpanded = expandedCommentId === log.id;
+                const addCommentHtml = isSystem ? `
+                    <div style="margin-top:8px;">
+                        ${sysCommentHtml}
+                        ${isExpanded ? `
+                            <div style="margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;">
+                                <textarea id="sys-comment-${log.id}" placeholder="追記コメントを入力（例：解約理由、導入理由）"
+                                    style="width:100%;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;font-size:0.82rem;outline:none;resize:none;min-height:60px;box-sizing:border-box;font-family:inherit;"
+                                    onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){addSysComment(${log.id});}"></textarea>
+                                <div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end;">
+                                    <button onclick="expandedCommentId=null;renderLogs()" style="padding:4px 12px;border:1px solid #e2e8f0;border-radius:6px;background:white;font-size:0.78rem;cursor:pointer;">キャンセル</button>
+                                    <button onclick="addSysComment(${log.id})" style="padding:4px 12px;border:none;border-radius:6px;background:#3b82f6;color:white;font-size:0.78rem;font-weight:600;cursor:pointer;"><i data-lucide="send" width="11"></i> 追記</button>
+                                </div>
+                            </div>
+                        ` : `
+                            <button onclick="expandedCommentId=${log.id};renderLogs()" style="margin-top:6px;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid #e2e8f0;border-radius:6px;background:white;font-size:0.75rem;color:#64748b;cursor:pointer;">
+                                <i data-lucide="message-square-plus" width="12"></i> コメントを追記
+                            </button>
+                        `}
+                    </div>
+                ` : '';
+
+                const entry = document.createElement('div');
+                entry.className = 'activity-entry';
+                entry.innerHTML = `
+                    <div class="timeline-dot-wrap">
+                        <div class="timeline-dot type-${log.type}"></div>
+                        <div class="timeline-line"></div>
+                    </div>
+                    <div class="activity-body">
+                        <div class="activity-header">
+                            <span class="activity-time">${log.time}</span>
+                            <span class="activity-type-badge ${badgeClass}">${badgeText}</span>
+                            <span style="font-size:0.75rem;color:#94a3b8;margin-left:2px;">${log.staff}</span>
+                            ${!isSystem ? `<button class="activity-delete-btn" onclick="deleteLog(${log.id})" title="削除"><i data-lucide="trash-2" width="13"></i></button>` : ''}
+                        </div>
+                        <div class="activity-title">${escapeHtml(log.title)}</div>
+                        ${log.content ? `<div class="${isSystem ? 'activity-content' : 'activity-content-card'}">${escapeHtml(log.content)}</div>` : ''}
+                        ${addCommentHtml}
+                    </div>
+                `;
+                container.appendChild(entry);
+            });
+            lucide.createIcons();
+        }
+
+        function addSysComment(logId) {
+            const ta = document.getElementById(`sys-comment-${logId}`);
+            const text = ta ? ta.value.trim() : '';
+            if (!text) return;
+            const log = activityLogs.find(l => l.id === logId);
+            if (!log) return;
+            if (!log.comments) log.comments = [];
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            log.comments.push({ id: Date.now(), staff: '田中 健太', time: timeStr, text });
+            expandedCommentId = null;
+            renderLogs();
+        }
+
+        function deleteSysComment(logId, commentId) {
+            if (!confirm('このコメントを削除しますか？')) return;
+            const log = activityLogs.find(l => l.id === logId);
+            if (log && log.comments) log.comments = log.comments.filter(c => c.id !== commentId);
+            renderLogs();
+        }
+
+        function filterLogs(type, btn) {
+            currentLogFilter = type;
+            document.querySelectorAll('.log-filter-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderLogs();
+        }
+
+        function addLogEntry() {
+            const titleInput = document.getElementById('log-title-input');
+            const contentInput = document.getElementById('log-comment-input');
+            const typeSelect = document.getElementById('log-type-select');
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            if (!title && !content) return;
+
+            const now = new Date();
+            const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            activityLogs.unshift({
+                id: Date.now(),
+                type: typeSelect.value,
+                time: timeStr,
+                staff: '田中 健太',
+                title: title || '社内メモ',
+                content: content
+            });
+
+            titleInput.value = '';
+            contentInput.value = '';
+            contentInput.style.height = 'auto';
+            renderLogs();
+        }
+
+        function deleteLog(id) {
+            if (!confirm('このログを削除しますか？')) return;
+            activityLogs = activityLogs.filter(log => log.id !== id);
+            renderLogs();
+        }
+
+        // textarea auto-resize + Ctrl+Enter送信
+        const logInput = document.getElementById('log-comment-input');
+        if (logInput) {
+            logInput.addEventListener('input', function () {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+            logInput.addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); addLogEntry(); }
+            });
+        }
+
+        // 初期描画（DOMContentLoadedが既に発火済みの場合も対応）
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderLogs);
+        } else {
+            renderLogs();
+        }
+    </script>
+    <script src="js/sidebar.js"></script>
+</body>
+
+</html>
