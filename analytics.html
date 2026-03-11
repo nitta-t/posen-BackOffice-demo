@@ -860,23 +860,23 @@
         <div id="tab-custom" class="page-tab-content">
           <div class="card mb-6 p-0 overflow-hidden">
             <!-- アコーディオンヘッダー -->
-            <button id="filter-accordion-btn" onclick="toggleFilterAccordion()"
-              class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
-              style="border: none; background: none; cursor: pointer;">
-              <div class="flex items-center gap-3">
-                <i data-lucide="filter" width="16" class="text-slate-500"></i>
-                <span class="text-base font-bold text-slate-800">抽出条件</span>
+            <div id="filter-accordion-btn" onclick="toggleFilterAccordion()"
+              style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; background: white; border-radius: 12px 12px 0 0;"
+              onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="filter" width="16" style="color:#64748b; flex-shrink:0;"></i>
+                <span style="font-size: 0.95rem; font-weight: 700; color: #1e293b;">抽出条件</span>
                 <span id="filter-count-badge"
-                  class="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full"
-                  style="display:none;">0件設定中</span>
+                  style="display:none; font-size: 0.7rem; background: #eff6ff; color: #3b82f6; font-weight: 700; padding: 2px 8px; border-radius: 99px;">0件設定中</span>
               </div>
-              <div class="flex items-center gap-3">
-                <button class="btn btn-secondary text-xs"
-                  onclick="event.stopPropagation(); clearAllFilters();">条件をクリア</button>
+              <div style="display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
+                <button class="btn btn-secondary text-xs" onclick="clearAllFilters()"
+                  style="font-size: 0.75rem; padding: 4px 10px;">条件をクリア</button>
                 <i data-lucide="chevron-right" width="18" id="filter-chevron"
-                  class="text-slate-400 transition-transform duration-200" style="transform: rotate(0deg);"></i>
+                  style="color:#94a3b8; transition: transform 0.2s; transform: rotate(0deg); flex-shrink:0;"
+                  onclick="toggleFilterAccordion(); event.stopPropagation();"></i>
               </div>
-            </button>
+            </div>
 
             <!-- アコーディオンコンテンツ（デフォルト非表示） -->
             <div id="filter-accordion-body" style="display: none; border-top: 1px solid #e2e8f0;">
@@ -884,7 +884,7 @@
                 <!-- 動的抽出条件ビルダー -->
                 <div id="filter-builder" class="mb-4">
                   <div class="filter-row flex items-center gap-3 mb-3">
-                    <select class="input w-48" onchange="updateFilterValues(this)">
+                    <select class="input" style="width: 200px;" onchange="updateFilterValues(this)">
                       <option value="">（項目を選択）</option>
                       <option value="area">エリア</option>
                       <option value="status">ステータス (ヘルススコア)</option>
@@ -895,7 +895,7 @@
                       <option value="timing">導入時期</option>
                       <option value="biztype">業態</option>
                     </select>
-                    <select class="input w-64">
+                    <select class="input" style="width: 240px;">
                       <option value="">（条件を選択してください）</option>
                     </select>
                     <button class="btn btn-secondary px-2 text-danger" style="display: none"
