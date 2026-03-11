@@ -1,1796 +1,1768 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Posen Back Office - 詳細分析</title>
-    <!-- Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Charts -->
-    <script
-      type="text/javascript"
-      src="https://www.gstatic.com/charts/loader.js"
-    ></script>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css" />
-    <style>
-      /* アカウント・法人切り替えトグル */
-      .toggle-switch-container {
-        display: inline-flex;
-        background-color: var(--color-slate-100);
-        border-radius: 9999px;
-        padding: 4px;
-        position: relative;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-      }
 
-      .toggle-switch-btn {
-        position: relative;
-        z-index: 1;
-        padding: 6px 16px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--color-slate-500);
-        border-radius: 9999px;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        user-select: none;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Posen Back Office - 詳細分析</title>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Google Charts -->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* アカウント・法人切り替えトグル */
+    .toggle-switch-container {
+      display: inline-flex;
+      background-color: var(--color-slate-100);
+      border-radius: 9999px;
+      padding: 4px;
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
 
-      .toggle-switch-btn.active {
-        color: var(--color-primary-700);
-      }
+    .toggle-switch-btn {
+      position: relative;
+      z-index: 1;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-slate-500);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
 
-      .toggle-switch-bg {
-        position: absolute;
-        top: 4px;
-        left: 4px;
-        height: calc(100% - 8px);
-        width: calc(50% - 4px);
-        background-color: white;
-        border-radius: 9999px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 0;
-      }
+    .toggle-switch-btn.active {
+      color: var(--color-primary-700);
+    }
 
-      /* トグル状態ごとの背景スライド */
-      #growth-toggle[data-state="users"] .toggle-switch-bg {
-        transform: translateX(0);
-      }
+    .toggle-switch-bg {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: calc(100% - 8px);
+      width: calc(50% - 4px);
+      background-color: white;
+      border-radius: 9999px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 0;
+    }
 
-      #growth-toggle[data-state="clinics"] .toggle-switch-bg {
-        transform: translateX(100%);
-      }
+    /* トグル状態ごとの背景スライド */
+    #growth-toggle[data-state="users"] .toggle-switch-bg {
+      transform: translateX(0);
+    }
 
-      /* KPIカード内のミニ文字 */
-      .kpi-mini-trend {
-        font-size: 0.75rem;
-        margin-top: 4px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
+    #growth-toggle[data-state="clinics"] .toggle-switch-bg {
+      transform: translateX(100%);
+    }
 
-      /* グラフの横スクロール対応 */
-      .chart-scroll-wrapper {
-        overflow-x: auto;
-        overflow-y: hidden;
-        width: 100%;
-      }
+    /* KPIカード内のミニ文字 */
+    .kpi-mini-trend {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
 
-      .chart-scroll-inner {
-        min-width: 600px;
-        height: 350px;
-      }
+    /* グラフの横スクロール対応 */
+    .chart-scroll-wrapper {
+      overflow-x: auto;
+      overflow-y: hidden;
+      width: 100%;
+    }
 
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-      }
+    .chart-scroll-inner {
+      min-width: 600px;
+      height: 350px;
+    }
 
-      .map-container {
-        position: relative;
-        width: 100%;
-        height: 400px;
-        background: #f8fafc;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
-      }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
 
-      .map-wrapper {
-        position: relative;
-        width: 320px;
-        height: 320px;
-      }
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: #f8fafc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
 
-      /* Simplified Japan Map SVG Styling */
-      .jp-region {
-        fill: #e2e8f0;
-        stroke: #fff;
-        stroke-width: 1.5;
-        transition: all 0.2s;
-        cursor: pointer;
-      }
+    .map-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
 
-      .jp-region:hover {
-        fill: #94a3b8;
-      }
+    /* Simplified Japan Map SVG Styling */
+    .jp-region {
+      fill: #e2e8f0;
+      stroke: #fff;
+      stroke-width: 1.5;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
 
-      .jp-region.active {
-        fill: var(--color-primary-500);
-      }
+    .jp-region:hover {
+      fill: #94a3b8;
+    }
 
-      .jp-region.medium {
-        fill: var(--color-primary-300);
-      }
+    .jp-region.active {
+      fill: var(--color-primary-500);
+    }
 
-      .jp-region.low {
-        fill: var(--color-primary-100);
-      }
+    .jp-region.medium {
+      fill: var(--color-primary-300);
+    }
 
-      .jp-text {
-        fill: #fff;
-        font-size: 14px;
-        font-weight: bold;
-        text-anchor: middle;
-        pointer-events: none;
-      }
+    .jp-region.low {
+      fill: var(--color-primary-100);
+    }
 
-      .jp-text.dark {
-        fill: #475569;
-      }
+    .jp-text {
+      fill: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      text-anchor: middle;
+      pointer-events: none;
+    }
 
-      .chart-container {
-        position: relative;
-        height: 300px;
-        width: 100%;
-      }
+    .jp-text.dark {
+      fill: #475569;
+    }
 
-      .stat-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-      }
-    </style>
-  </head>
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
 
-  <body>
-    <div class="app-container">
-      <!-- Sidebar -->
-      <div id="sidebar-container"></div>
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
 
-      <!-- Main Content -->
-      <main class="main-content">
-        <div style="padding: 32px; max-width: 1200px; margin: 0 auto">
-          <div class="page-header">
-            <div>
-              <h1 class="text-2xl font-bold mb-1">詳細分析</h1>
-              <p class="text-muted text-sm">
-                各種指標の詳細なトレンドとセグメントごとの分析
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div style="padding: 32px; max-width: 1200px; margin: 0 auto">
+        <div class="page-header">
+          <div>
+            <h1 class="text-2xl font-bold mb-1">詳細分析</h1>
+            <p class="text-muted text-sm">
+              各種指標の詳細なトレンドとセグメントごとの分析
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <select class="input" id="analytics-period" onchange="updateGrowthData()"
+              style="width: auto; padding-right: 32px">
+              <option value="1">過去1ヶ月</option>
+              <option value="3">過去3ヶ月</option>
+              <option value="6">過去6ヶ月</option>
+              <option value="12" selected>過去1年</option>
+            </select>
+            <button class="btn btn-secondary">
+              <i data-lucide="download" width="16"></i> エクスポート
+            </button>
+          </div>
+        </div>
+
+        <!-- Page Tabs -->
+        <div class="page-tabs">
+          <button class="page-tab-btn active" onclick="switchAnalyticsTab('growth', this)">
+            <i data-lucide="trending-up" width="16"></i> アカウント推移
+          </button>
+          <button class="page-tab-btn" onclick="switchAnalyticsTab('churn', this)">
+            <i data-lucide="user-minus" width="16"></i> 解約分析
+          </button>
+          <button class="page-tab-btn" onclick="switchAnalyticsTab('distribution', this)">
+            <i data-lucide="map" width="16"></i> 顧客分布
+          </button>
+          <button class="page-tab-btn" onclick="switchAnalyticsTab('usage', this)">
+            <i data-lucide="activity" width="16"></i> 利用状況
+          </button>
+          <button class="page-tab-btn" onclick="switchAnalyticsTab('custom', this)">
+            <i data-lucide="filter" width="16"></i> カスタム抽出
+          </button>
+        </div>
+
+        <!-- 1. アカウント推移 (Growth) -->
+        <div id="tab-growth" class="page-tab-content active">
+          <!-- アカウント/法人 切り替えトグル -->
+          <div class="flex items-center gap-4 mb-6">
+            <div class="toggle-switch-container" id="growth-toggle" data-state="users">
+              <div class="toggle-switch-bg"></div>
+              <div class="toggle-switch-btn active" onclick="setGrowthToggle('users')">
+                アカウント数 (Users)
+              </div>
+              <div class="toggle-switch-btn" onclick="setGrowthToggle('clinics')">
+                法人数 (Clinics)
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="card p-5 mb-0" style="border-top: 4px solid var(--color-primary-500)">
+              <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
+                総数（累計）
               </p>
+              <h3 class="text-3xl font-bold text-slate-800" id="kpi-total">
+                3,124
+              </h3>
+              <div class="kpi-mini-trend text-success" id="kpi-mom-total">
+                <i data-lucide="trending-up" width="14"></i> 前期間比 +42%
+              </div>
             </div>
-            <div class="flex gap-2">
-              <select
-                class="input"
-                id="analytics-period"
-                onchange="updateGrowthData()"
-                style="width: auto; padding-right: 32px"
-              >
-                <option value="1">過去1ヶ月</option>
-                <option value="3">過去3ヶ月</option>
-                <option value="6">過去6ヶ月</option>
-                <option value="12" selected>過去1年</option>
-              </select>
-              <button class="btn btn-secondary">
-                <i data-lucide="download" width="16"></i> エクスポート
-              </button>
+            <div class="card p-5 mb-0" style="border-top: 4px solid #10b981">
+              <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
+                純増数
+              </p>
+              <h3 class="text-3xl font-bold text-slate-800" id="kpi-net">
+                +924
+              </h3>
+              <div class="kpi-mini-trend text-muted" id="kpi-mom-net">
+                （前期間比データ）
+              </div>
+            </div>
+            <div class="card p-4 mb-0 flex flex-col justify-center"
+              style="border-top: 4px solid var(--color-slate-300)">
+              <p class="text-[0.7rem] text-muted font-bold uppercase mb-3">
+                期間内内訳
+              </p>
+              <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-slate-600">新規</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold text-success" id="kpi-new">1150</span>
+                    <span class="kpi-mini-trend w-16 text-right" style="margin-top: 0" id="kpi-mom-new"></span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-slate-600">更新</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold text-primary-600" id="kpi-renew">1420</span>
+                    <span class="kpi-mini-trend w-16 text-right" style="margin-top: 0" id="kpi-mom-renew"></span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-slate-600">解約</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold text-danger" id="kpi-churn">226</span>
+                    <span class="kpi-mini-trend w-16 text-right" style="margin-top: 0" id="kpi-mom-churn"></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Page Tabs -->
-          <div class="page-tabs">
-            <button
-              class="page-tab-btn active"
-              onclick="switchAnalyticsTab('growth', this)"
-            >
-              <i data-lucide="trending-up" width="16"></i> アカウント推移
-            </button>
-            <button
-              class="page-tab-btn"
-              onclick="switchAnalyticsTab('churn', this)"
-            >
-              <i data-lucide="user-minus" width="16"></i> 解約分析
-            </button>
-            <button
-              class="page-tab-btn"
-              onclick="switchAnalyticsTab('distribution', this)"
-            >
-              <i data-lucide="map" width="16"></i> 顧客分布
-            </button>
-            <button
-              class="page-tab-btn"
-              onclick="switchAnalyticsTab('usage', this)"
-            >
-              <i data-lucide="activity" width="16"></i> 利用状況
-            </button>
-            <button
-              class="page-tab-btn"
-              onclick="switchAnalyticsTab('custom', this)"
-            >
-              <i data-lucide="filter" width="16"></i> カスタム抽出
-            </button>
-          </div>
-
-          <!-- 1. アカウント推移 (Growth) -->
-          <div id="tab-growth" class="page-tab-content active">
-            <!-- アカウント/法人 切り替えトグル -->
-            <div class="flex items-center gap-4 mb-6">
-              <div
-                class="toggle-switch-container"
-                id="growth-toggle"
-                data-state="users"
-              >
-                <div class="toggle-switch-bg"></div>
-                <div
-                  class="toggle-switch-btn active"
-                  onclick="setGrowthToggle('users')"
-                >
-                  アカウント数 (Users)
-                </div>
-                <div
-                  class="toggle-switch-btn"
-                  onclick="setGrowthToggle('clinics')"
-                >
-                  法人数 (Clinics)
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="grid gap-4 mb-6"
-              style="grid-template-columns: repeat(3, 1fr)"
-            >
-              <div
-                class="card p-5 mb-0"
-                style="border-top: 4px solid var(--color-primary-500)"
-              >
-                <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
-                  総数（累計）
-                </p>
-                <h3 class="text-3xl font-bold text-slate-800" id="kpi-total">
-                  3,124
-                </h3>
-                <div class="kpi-mini-trend text-success" id="kpi-mom-total">
-                  <i data-lucide="trending-up" width="14"></i> 前期間比 +42%
-                </div>
-              </div>
-              <div class="card p-5 mb-0" style="border-top: 4px solid #10b981">
-                <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
-                  純増数
-                </p>
-                <h3 class="text-3xl font-bold text-slate-800" id="kpi-net">
-                  +924
-                </h3>
-                <div class="kpi-mini-trend text-muted" id="kpi-mom-net">
-                  （前期間比データ）
-                </div>
-              </div>
-              <div
-                class="card p-4 mb-0 flex flex-col justify-center"
-                style="border-top: 4px solid var(--color-slate-300)"
-              >
-                <p class="text-[0.7rem] text-muted font-bold uppercase mb-3">
-                  期間内内訳
-                </p>
-                <div class="flex flex-col gap-2">
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-slate-600">新規</span>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xl font-bold text-success" id="kpi-new"
-                        >1150</span
-                      >
-                      <span
-                        class="kpi-mini-trend w-16 text-right"
-                        style="margin-top: 0"
-                        id="kpi-mom-new"
-                      ></span>
-                    </div>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-slate-600">更新</span>
-                    <div class="flex items-center gap-2">
-                      <span
-                        class="text-xl font-bold text-primary-600"
-                        id="kpi-renew"
-                        >1420</span
-                      >
-                      <span
-                        class="kpi-mini-trend w-16 text-right"
-                        style="margin-top: 0"
-                        id="kpi-mom-renew"
-                      ></span>
-                    </div>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-slate-600">解約</span>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xl font-bold text-danger" id="kpi-churn"
-                        >226</span
-                      >
-                      <span
-                        class="kpi-mini-trend w-16 text-right"
-                        style="margin-top: 0"
-                        id="kpi-mom-churn"
-                      ></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              class="grid"
-              style="
+          <div class="grid" style="
                 grid-template-columns: 2fr 1fr;
                 gap: 24px;
                 margin-bottom: 24px;
-              "
-            >
-              <div class="card">
-                <h2 class="text-lg font-bold mb-4" id="growth-chart-title">
-                  アカウント・法人数推移
-                </h2>
-                <div class="chart-scroll-wrapper">
-                  <div class="chart-scroll-inner">
-                    <canvas id="growthChart"></canvas>
-                  </div>
+              ">
+            <div class="card">
+              <h2 class="text-lg font-bold mb-4" id="growth-chart-title">
+                アカウント・法人数推移
+              </h2>
+              <div class="chart-scroll-wrapper">
+                <div class="chart-scroll-inner">
+                  <canvas id="growthChart"></canvas>
                 </div>
               </div>
-              <div class="card">
-                <h2 class="text-lg font-bold mb-4">導入経路</h2>
-                <div class="chart-container" style="height: 250px">
-                  <canvas id="growthBreakdownChart"></canvas>
-                </div>
+            </div>
+            <div class="card">
+              <h2 class="text-lg font-bold mb-4">導入経路</h2>
+              <div class="chart-container" style="height: 250px">
+                <canvas id="growthBreakdownChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 解約分析 (Churn) -->
+        <div id="tab-churn" class="page-tab-content">
+          <!-- Row 1: KPI -->
+          <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="card p-5 mb-0" style="border-top: 4px solid var(--color-danger)">
+              <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
+                解約数
+              </p>
+              <h3 class="text-3xl font-bold text-slate-800">
+                226<span class="text-base font-normal text-muted ml-1">件</span>
+              </h3>
+              <div class="kpi-mini-trend text-danger mt-1">
+                <i data-lucide="trending-up" width="14"></i> 前期間比 +12%
+              </div>
+            </div>
+            <div class="card p-5 mb-0" style="border-top: 4px solid var(--color-warning)">
+              <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
+                解約率
+              </p>
+              <h3 class="text-3xl font-bold text-slate-800">
+                7.6<span class="text-base font-normal text-muted ml-1">%</span>
+              </h3>
+              <div class="kpi-mini-trend text-success mt-1">
+                <i data-lucide="trending-down" width="14"></i> 前期間比 -0.5pt
+              </div>
+            </div>
+            <div class="card p-5 mb-0" style="border-top: 4px solid var(--color-slate-300)">
+              <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
+                解約までの利用期間
+              </p>
+              <h3 class="text-3xl font-bold text-slate-800">
+                1.2<span class="text-base font-normal text-muted ml-1">年</span>
+              </h3>
+              <div class="kpi-mini-trend text-slate-500 mt-1">
+                <i data-lucide="minus" width="14"></i> 前期間比 横ばい
               </div>
             </div>
           </div>
 
-          <!-- 2. 解約分析 (Churn) -->
-          <div id="tab-churn" class="page-tab-content">
-            <!-- Row 1: KPI -->
-            <div
-              class="grid gap-4 mb-6"
-              style="grid-template-columns: repeat(3, 1fr)"
-            >
-              <div
-                class="card p-5 mb-0"
-                style="border-top: 4px solid var(--color-danger)"
-              >
-                <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
-                  解約数
-                </p>
-                <h3 class="text-3xl font-bold text-slate-800">
-                  226<span class="text-base font-normal text-muted ml-1"
-                    >件</span
-                  >
-                </h3>
-                <div class="kpi-mini-trend text-danger mt-1">
-                  <i data-lucide="trending-up" width="14"></i> 前期間比 +12%
-                </div>
-              </div>
-              <div
-                class="card p-5 mb-0"
-                style="border-top: 4px solid var(--color-warning)"
-              >
-                <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
-                  解約率
-                </p>
-                <h3 class="text-3xl font-bold text-slate-800">
-                  7.6<span class="text-base font-normal text-muted ml-1"
-                    >%</span
-                  >
-                </h3>
-                <div class="kpi-mini-trend text-success mt-1">
-                  <i data-lucide="trending-down" width="14"></i> 前期間比 -0.5pt
-                </div>
-              </div>
-              <div
-                class="card p-5 mb-0"
-                style="border-top: 4px solid var(--color-slate-300)"
-              >
-                <p class="text-[0.7rem] text-muted font-bold uppercase mb-1">
-                  解約までの利用期間
-                </p>
-                <h3 class="text-3xl font-bold text-slate-800">
-                  1.2<span class="text-base font-normal text-muted ml-1"
-                    >年</span
-                  >
-                </h3>
-                <div class="kpi-mini-trend text-slate-500 mt-1">
-                  <i data-lucide="minus" width="14"></i> 前期間比 横ばい
-                </div>
+          <!-- Row 2: Charts and Stats -->
+          <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="card mb-0">
+              <h2 class="text-lg font-bold mb-4">
+                利用期間別 解約数・解約率
+              </h2>
+              <div class="chart-container" style="height: 250px">
+                <canvas id="churnPeriodComboChart"></canvas>
               </div>
             </div>
-
-            <!-- Row 2: Charts and Stats -->
-            <div
-              class="grid gap-4 mb-6"
-              style="grid-template-columns: repeat(3, 1fr)"
-            >
-              <div class="card mb-0">
-                <h2 class="text-lg font-bold mb-4">
-                  利用期間別 解約数・解約率
-                </h2>
-                <div class="chart-container" style="height: 250px">
-                  <canvas id="churnPeriodComboChart"></canvas>
-                </div>
+            <div class="card mb-0">
+              <h2 class="text-lg font-bold mb-4">解約理由の内訳</h2>
+              <div class="chart-container" style="height: 250px">
+                <canvas id="churnReasonChart"></canvas>
               </div>
-              <div class="card mb-0">
-                <h2 class="text-lg font-bold mb-4">解約理由の内訳</h2>
-                <div class="chart-container" style="height: 250px">
-                  <canvas id="churnReasonChart"></canvas>
-                </div>
+            </div>
+            <div class="card mb-0 flex flex-col justify-between">
+              <div>
+                <h2 class="text-lg font-bold mb-2">解約前1ヶ月の利用状況</h2>
+                <p class="text-xs text-slate-500 mb-4">
+                  解約直前のエンゲージメント低下を示す指標です。
+                </p>
               </div>
-              <div class="card mb-0 flex flex-col justify-between">
+              <div class="flex-1 flex flex-col justify-end gap-3 pb-2">
                 <div>
-                  <h2 class="text-lg font-bold mb-2">解約前1ヶ月の利用状況</h2>
-                  <p class="text-xs text-slate-500 mb-4">
-                    解約直前のエンゲージメント低下を示す指標です。
+                  <div class="flex justify-between items-end mb-1">
+                    <span class="text-sm font-bold text-slate-700">平均撮影枚数</span>
+                    <span class="text-lg font-bold text-danger">45<span
+                        class="text-[0.65rem] font-normal text-muted ml-1">枚</span></span>
+                  </div>
+                  <p class="text-[0.65rem] text-muted text-right mb-1">
+                    ※稼働施設平均: 180枚
                   </p>
-                </div>
-                <div class="flex-1 flex flex-col justify-end gap-3 pb-2">
-                  <div>
-                    <div class="flex justify-between items-end mb-1">
-                      <span class="text-sm font-bold text-slate-700"
-                        >平均撮影枚数</span
-                      >
-                      <span class="text-lg font-bold text-danger"
-                        >45<span
-                          class="text-[0.65rem] font-normal text-muted ml-1"
-                          >枚</span
-                        ></span
-                      >
-                    </div>
-                    <p class="text-[0.65rem] text-muted text-right mb-1">
-                      ※稼働施設平均: 180枚
-                    </p>
-                    <div
-                      class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"
-                    >
-                      <div class="bg-danger h-full" style="width: 25%"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between items-end mb-1">
-                      <span class="text-sm font-bold text-slate-700"
-                        >平均ログイン数</span
-                      >
-                      <span class="text-lg font-bold text-danger"
-                        >12<span
-                          class="text-[0.65rem] font-normal text-muted ml-1"
-                          >回/月</span
-                        ></span
-                      >
-                    </div>
-                    <p class="text-[0.65rem] text-muted text-right mb-1">
-                      ※稼働施設平均: 45回/月
-                    </p>
-                    <div
-                      class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"
-                    >
-                      <div class="bg-danger h-full" style="width: 26%"></div>
-                    </div>
-                  </div>
-                  <div>
-                    <div class="flex justify-between items-end mb-1">
-                      <span class="text-sm font-bold text-slate-700"
-                        >平均患者数(新規)</span
-                      >
-                      <span class="text-lg font-bold text-warning"
-                        >8<span
-                          class="text-[0.65rem] font-normal text-muted ml-1"
-                          >人/月</span
-                        ></span
-                      >
-                    </div>
-                    <p class="text-[0.65rem] text-muted text-right mb-1">
-                      ※稼働施設平均: 25人/月
-                    </p>
-                    <div
-                      class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"
-                    >
-                      <div class="bg-warning h-full" style="width: 32%"></div>
-                    </div>
+                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-danger h-full" style="width: 25%"></div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Row 3: Segments -->
-            <h2
-              class="text-xl font-bold mb-4 mt-8 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400"
-            >
-              セグメント別解約率
-            </h2>
-            <div
-              class="grid gap-4 mb-6"
-              style="grid-template-columns: repeat(3, 1fr)"
-            >
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  業態別
-                </h3>
-                <div class="chart-container" style="height: 180px">
-                  <canvas id="churnSegBizChart"></canvas>
+                <div>
+                  <div class="flex justify-between items-end mb-1">
+                    <span class="text-sm font-bold text-slate-700">平均ログイン数</span>
+                    <span class="text-lg font-bold text-danger">12<span
+                        class="text-[0.65rem] font-normal text-muted ml-1">回/月</span></span>
+                  </div>
+                  <p class="text-[0.65rem] text-muted text-right mb-1">
+                    ※稼働施設平均: 45回/月
+                  </p>
+                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-danger h-full" style="width: 26%"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  院規模別
-                </h3>
-                <div class="chart-container" style="height: 180px">
-                  <canvas id="churnSegScaleChart"></canvas>
-                </div>
-              </div>
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  導入経路別
-                </h3>
-                <div class="chart-container" style="height: 180px">
-                  <canvas id="churnSegDistChart"></canvas>
+                <div>
+                  <div class="flex justify-between items-end mb-1">
+                    <span class="text-sm font-bold text-slate-700">平均患者数(新規)</span>
+                    <span class="text-lg font-bold text-warning">8<span
+                        class="text-[0.65rem] font-normal text-muted ml-1">人/月</span></span>
+                  </div>
+                  <p class="text-[0.65rem] text-muted text-right mb-1">
+                    ※稼働施設平均: 25人/月
+                  </p>
+                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-warning h-full" style="width: 32%"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 3. 顧客分布 (Distribution) -->
-          <div id="tab-distribution" class="page-tab-content">
-            <div
-              class="grid"
-              style="
+          <!-- Row 3: Segments -->
+          <h2
+            class="text-xl font-bold mb-4 mt-8 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400">
+            セグメント別解約率
+          </h2>
+          <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                業態別
+              </h3>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="churnSegBizChart"></canvas>
+              </div>
+            </div>
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                院規模別
+              </h3>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="churnSegScaleChart"></canvas>
+              </div>
+            </div>
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                導入経路別
+              </h3>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="churnSegDistChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 顧客分布 (Distribution) -->
+        <div id="tab-distribution" class="page-tab-content">
+          <div class="grid" style="
                 grid-template-columns: 1fr 1fr;
                 gap: 24px;
                 margin-bottom: 24px;
-              "
-            >
-              <!-- 日本地図 (SVG) -->
-              <div class="card">
-                <div class="flex justify-between items-center mb-4">
-                  <h2 class="text-lg font-bold">地域分布マップ</h2>
-                  <span class="badge badge-info shadow-sm">関東エリア集中</span>
-                </div>
-                <div class="map-container">
-                  <div
-                    id="japan-map-container"
-                    style="width: 100%; height: 350px"
-                  ></div>
-                </div>
+              ">
+            <!-- 日本地図 (SVG) -->
+            <div class="card">
+              <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">地域分布マップ</h2>
+                <span class="badge badge-info shadow-sm">関東エリア集中</span>
               </div>
+              <div class="map-container">
+                <div id="japan-map-container" style="width: 100%; height: 350px"></div>
+              </div>
+            </div>
 
-              <!-- 属性別構成比 -->
-              <div class="card flex flex-col justify-between">
-                <div>
-                  <h2 class="text-lg font-bold mb-4">
-                    エリア別導入数ランキング
-                  </h2>
-                  <div
-                    style="
+            <!-- 属性別構成比 -->
+            <div class="card flex flex-col justify-between">
+              <div>
+                <h2 class="text-lg font-bold mb-4">
+                  エリア別導入数ランキング
+                </h2>
+                <div style="
                       max-height: 350px;
                       overflow-y: auto;
                       border: 1px solid var(--color-slate-200);
                       border-radius: 8px;
-                    "
-                  >
-                    <table class="data-table" style="margin-bottom: 0">
-                      <thead
-                        style="
+                    ">
+                  <table class="data-table" style="margin-bottom: 0">
+                    <thead style="
                           position: sticky;
                           top: 0;
                           background: #fff;
                           z-index: 1;
                           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                        "
-                      >
-                        <tr>
-                          <th
-                            style="
+                        ">
+                      <tr>
+                        <th style="
                               padding: 8px 12px;
                               width: 60px;
                               text-align: center;
-                            "
-                          >
-                            順位
-                          </th>
-                          <th style="padding: 8px 12px">都道府県</th>
-                          <th style="padding: 8px 12px; text-align: right">
-                            導入数
-                          </th>
-                          <th style="padding: 8px 12px; text-align: right">
-                            割合
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody id="prefecture-ranking-body">
-                        <!-- JS内で動的に生成されます -->
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- セグメント別構成比 -->
-            <h2
-              class="text-xl font-bold mb-4 mt-8 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400"
-            >
-              セグメント別構成比
-            </h2>
-            <div
-              class="grid gap-4 mb-6"
-              style="grid-template-columns: repeat(3, 1fr)"
-            >
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  業態別
-                </h3>
-                <div class="chart-container" style="height: 180px">
-                  <canvas id="bizTypeChart"></canvas>
-                </div>
-              </div>
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  院規模別
-                </h3>
-                <div class="chart-container" style="height: 180px">
-                  <canvas id="scaleChart"></canvas>
-                </div>
-              </div>
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  導入経路別
-                </h3>
-                <div class="chart-container" style="height: 180px">
-                  <canvas id="channelChart"></canvas>
+                            ">
+                          順位
+                        </th>
+                        <th style="padding: 8px 12px">都道府県</th>
+                        <th style="padding: 8px 12px; text-align: right">
+                          導入数
+                        </th>
+                        <th style="padding: 8px 12px; text-align: right">
+                          割合
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="prefecture-ranking-body">
+                      <!-- JS内で動的に生成されます -->
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 4. 利用状況 (Usage) -->
-          <div id="tab-usage" class="page-tab-content">
-            <!-- 1. 主要カード -->
-            <h2
-              class="text-xl font-bold mb-4 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400"
-            >
-              利用サマリー
-            </h2>
-            <!-- 1. 全体サマリー -->
-            <div
-              class="grid gap-4 mb-4"
-              style="grid-template-columns: repeat(2, 1fr)"
-            >
-              <div
-                class="card mb-0 p-4 flex justify-between items-center"
-                style="border-left: 4px solid var(--color-primary-500)"
-              >
-                <div>
-                  <p class="text-[0.75rem] text-muted font-bold mb-1">
-                    対象期間内の総撮影枚数
-                  </p>
-                  <h3
-                    class="text-2xl font-bold text-slate-800"
-                    style="margin: 0"
-                  >
-                    124,500<span class="text-sm font-normal text-muted ml-1"
-                      >枚</span
-                    >
-                  </h3>
-                </div>
-                <div>
-                  <p
-                    class="text-sm font-bold bg-success-50 text-success-700 px-3 py-1.5 rounded-full flex items-center gap-1"
-                  >
-                    <i data-lucide="arrow-up-right" width="14" height="14"></i
-                    >前月比 +5.2%
-                  </p>
-                </div>
-              </div>
-              <div
-                class="card mb-0 p-4 flex justify-between items-center"
-                style="border-left: 4px solid var(--color-primary-500)"
-              >
-                <div>
-                  <p class="text-[0.75rem] text-muted font-bold mb-1">
-                    対象期間内の総登録患者数
-                  </p>
-                  <h3
-                    class="text-2xl font-bold text-slate-800"
-                    style="margin: 0"
-                  >
-                    46,200<span class="text-sm font-normal text-muted ml-1"
-                      >人</span
-                    >
-                  </h3>
-                </div>
-                <div>
-                  <p
-                    class="text-sm font-bold bg-success-50 text-success-700 px-3 py-1.5 rounded-full flex items-center gap-1"
-                  >
-                    <i data-lucide="arrow-up-right" width="14" height="14"></i
-                    >前月比 +3.8%
-                  </p>
-                </div>
+          <!-- セグメント別構成比 -->
+          <h2
+            class="text-xl font-bold mb-4 mt-8 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400">
+            セグメント別構成比
+          </h2>
+          <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                業態別
+              </h3>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="bizTypeChart"></canvas>
               </div>
             </div>
-
-            <!-- 2. アクティブ・非アクティブ施設サマリー -->
-            <div class="grid gap-4 mb-6" style="grid-template-columns: 3fr 1fr">
-              <!-- アクティブ施設グループ -->
-              <div
-                class="card p-5 mb-0"
-                style="border-top: 4px solid var(--color-success)"
-              >
-                <h3
-                  class="font-bold text-success-700 mb-4 flex items-center text-sm border-b border-slate-100 pb-2"
-                >
-                  <i data-lucide="activity" width="16" class="mr-1"></i
-                  >アクティブ施設 (<span id="active-facility-period"
-                    >直近365日以内に利用あり</span
-                  >)
-                </h3>
-                <div
-                  class="grid gap-4"
-                  style="grid-template-columns: repeat(4, 1fr)"
-                >
-                  <div>
-                    <p class="text-[0.7rem] text-muted font-bold mb-1">
-                      アクティブ施設数 / アクティブ率
-                    </p>
-                    <h3
-                      class="text-xl font-bold text-slate-800 mb-1"
-                      style="margin-top: 0"
-                    >
-                      2,580<span class="text-xs font-normal text-muted ml-1"
-                        >施設</span
-                      >
-                    </h3>
-                    <p class="text-xs font-bold text-success mb-2">(82.5%)</p>
-                    <p
-                      class="text-[0.7rem] text-success flex gap-1 items-center"
-                    >
-                      <i data-lucide="arrow-up-right" width="12"></i>前月比
-                      +2.1%
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-[0.7rem] text-muted font-bold mb-1">
-                      施設あたり撮影枚数
-                    </p>
-                    <h3
-                      class="text-xl font-bold text-slate-800 mb-1"
-                      style="margin-top: 0"
-                    >
-                      48.2<span class="text-xs font-normal text-muted ml-1"
-                        >枚/施設</span
-                      >
-                    </h3>
-                    <p
-                      class="text-[0.7rem] text-success mt-6 flex gap-1 items-center"
-                    >
-                      <i data-lucide="arrow-up-right" width="12"></i>前月比
-                      +1.5枚
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-[0.7rem] text-muted font-bold mb-1">
-                      施設あたり患者数
-                    </p>
-                    <h3
-                      class="text-xl font-bold text-slate-800 mb-1"
-                      style="margin-top: 0"
-                    >
-                      45.0<span class="text-xs font-normal text-muted ml-1"
-                        >人/施設</span
-                      >
-                    </h3>
-                    <p
-                      class="text-[0.7rem] text-danger mt-6 flex gap-1 items-center"
-                    >
-                      <i data-lucide="arrow-down-right" width="12"></i>前月比
-                      -2.0人
-                    </p>
-                  </div>
-                  <div>
-                    <p class="text-[0.7rem] text-muted font-bold mb-1">
-                      患者あたり撮影枚数
-                    </p>
-                    <h3
-                      class="text-xl font-bold text-slate-800 mb-1"
-                      style="margin-top: 0"
-                    >
-                      2.7<span class="text-xs font-normal text-muted ml-1"
-                        >枚/人</span
-                      >
-                    </h3>
-                    <p
-                      class="text-[0.7rem] text-success mt-6 flex gap-1 items-center"
-                    >
-                      <i data-lucide="arrow-up-right" width="12"></i>前月比
-                      +0.2枚
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 非アクティブ施設グループ -->
-              <div
-                class="card p-5 mb-0"
-                style="border-top: 4px solid var(--color-warning)"
-              >
-                <h3
-                  class="font-bold text-amber-700 mb-4 flex items-center text-sm border-b border-slate-100 pb-2"
-                >
-                  <i data-lucide="moon" width="16" class="mr-1"></i
-                  >非アクティブ施設
-                </h3>
-                <div class="flex flex-col justify-center">
-                  <p class="text-[0.7rem] text-muted font-bold mb-1">
-                    非アクティブ施設数 / 非アクティブ率
-                  </p>
-                  <h3
-                    class="text-xl font-bold text-slate-800 mb-1"
-                    style="margin-top: 0"
-                  >
-                    544<span class="text-xs font-normal text-muted ml-1"
-                      >施設</span
-                    >
-                  </h3>
-                  <p class="text-xs font-bold text-warning mb-2">(17.5%)</p>
-                  <p
-                    class="text-[0.7rem] text-danger mt-1 flex gap-1 items-center"
-                  >
-                    <i data-lucide="arrow-up-right" width="12"></i>前月比 +0.5%
-                  </p>
-                </div>
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                院規模別
+              </h3>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="scaleChart"></canvas>
               </div>
             </div>
-
-            <!-- 2. 推移グラフ -->
-            <div class="card mb-6">
-              <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">推移グラフ</h2>
-                <select
-                  id="usageChartPeriod"
-                  class="input w-32 text-sm"
-                  onchange="
-                    if (typeof updateUsageChart === 'function')
-                      updateUsageChart(this.value);
-                  "
-                >
-                  <option value="hourly">時次</option>
-                  <option value="daily">日次</option>
-                  <option value="weekly">週次</option>
-                  <option value="monthly" selected>月次</option>
-                </select>
-              </div>
-              <div class="chart-container" style="height: 300px">
-                <canvas id="usageActivityChart"></canvas>
-              </div>
-            </div>
-
-            <!-- 3. & 4. 分布割合 -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-              <div class="card mb-0">
-                <h2 class="text-lg font-bold mb-4">ヘルススコア分布割合</h2>
-                <div class="chart-container" style="height: 250px">
-                  <canvas id="healthScoreChart"></canvas>
-                </div>
-              </div>
-              <div class="card mb-0">
-                <h2 class="text-lg font-bold mb-4">患者数セグメント割合</h2>
-                <div class="chart-container" style="height: 250px">
-                  <canvas id="patientSegmentChart"></canvas>
-                </div>
-              </div>
-            </div>
-
-            <!-- 5. 利用分析 -->
-            <h2
-              class="text-xl font-bold mb-4 mt-8 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400"
-            >
-              利用分析
-            </h2>
-            <div
-              class="grid gap-4 mb-6"
-              style="grid-template-columns: repeat(3, 1fr)"
-            >
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  患者数 × 撮影枚数 (施設散布図)
-                </h3>
-                <div class="chart-container" style="height: 230px">
-                  <canvas id="scatterUsageChart"></canvas>
-                </div>
-              </div>
-              <div class="card mb-0">
-                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                  患者規模別 平均撮影数
-                </h3>
-                <div class="chart-container" style="height: 230px">
-                  <canvas id="avgShotsByScaleChart"></canvas>
-                </div>
-              </div>
-              <div class="card mb-0 flex flex-col justify-between">
-                <div>
-                  <h3 class="text-md font-bold mb-4 text-center text-slate-700">
-                    施設別撮影ランキング
-                  </h3>
-                  <div
-                    style="
-                      max-height: 230px;
-                      overflow-y: auto;
-                      border: 1px solid var(--color-slate-200);
-                      border-radius: 6px;
-                    "
-                  >
-                    <table
-                      class="data-table"
-                      style="margin-bottom: 0; font-size: 0.8rem"
-                    >
-                      <thead
-                        style="
-                          position: sticky;
-                          top: 0;
-                          background: #fff;
-                          z-index: 1;
-                        "
-                      >
-                        <tr>
-                          <th
-                            style="
-                              padding: 4px 8px;
-                              width: 40px;
-                              text-align: center;
-                            "
-                          >
-                            順位
-                          </th>
-                          <th style="padding: 4px 8px">施設名</th>
-                          <th style="padding: 4px 8px; text-align: right">
-                            枚数
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td
-                            style="
-                              padding: 4px 8px;
-                              text-align: center;
-                              font-weight: bold;
-                              color: #b45309;
-                            "
-                          >
-                            1
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            テスト整骨院
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            1,240
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            style="
-                              padding: 4px 8px;
-                              text-align: center;
-                              font-weight: bold;
-                              color: #64748b;
-                            "
-                          >
-                            2
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            新宿中央接骨院
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            980
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            style="
-                              padding: 4px 8px;
-                              text-align: center;
-                              font-weight: bold;
-                              color: #92400e;
-                            "
-                          >
-                            3
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            ABCクリニック
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            850
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 8px; text-align: center">
-                            4
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            山田カイロプラクティック
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            712
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 8px; text-align: center">
-                            5
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            名古屋リハビリハブ
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            605
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 8px; text-align: center">
-                            6
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            仙台メディカル整体
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            590
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding: 4px 8px; text-align: center">
-                            7
-                          </td>
-                          <td
-                            style="padding: 4px 8px"
-                            class="truncate max-w-[100px]"
-                          >
-                            品川美容サロン
-                          </td>
-                          <td style="padding: 4px 8px; text-align: right">
-                            588
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. カスタム抽出 (Custom) -->
-          <div id="tab-custom" class="page-tab-content">
-            <div class="card mb-6">
-              <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold">抽出条件</h2>
-                <button class="btn btn-secondary text-sm">条件をクリア</button>
-              </div>
-              <!-- 動的抽出条件ビルダー -->
-              <div id="filter-builder" class="mb-4">
-                <div class="filter-row flex items-center gap-3 mb-3">
-                  <select
-                    class="input w-48"
-                    onchange="updateFilterValues(this)"
-                  >
-                    <option value="">（項目を選択）</option>
-                    <option value="area">エリア</option>
-                    <option value="status">ステータス (ヘルススコア)</option>
-                    <option value="scale">院規模</option>
-                    <option value="period">継続期間 (契約から)</option>
-                    <option value="shots">月間撮影枚数</option>
-                    <option value="channel">導入経路 / 代理店</option>
-                    <option value="timing">導入時期</option>
-                    <option value="biztype">業態</option>
-                  </select>
-                  <select class="input w-64">
-                    <option value="">（条件を選択してください）</option>
-                  </select>
-                  <button
-                    class="btn btn-secondary px-2 text-danger"
-                    style="display: none"
-                    onclick="removeFilterRow(this)"
-                  >
-                    <i data-lucide="trash-2" width="16"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="mb-6">
-                <button
-                  class="btn btn-secondary text-sm"
-                  onclick="addFilterRow()"
-                >
-                  <i data-lucide="plus" width="16"></i> 条件を追加
-                </button>
-              </div>
-              <div class="flex justify-end gap-2">
-                <button
-                  class="btn btn-primary"
-                  onclick="
-                    lucide.createIcons();
-                    alert('条件で抽出しました');
-                  "
-                >
-                  この条件で抽出
-                </button>
-              </div>
-            </div>
-
-            <div class="card p-0 overflow-hidden mb-6">
-              <div
-                class="p-4 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center bg-slate-50 gap-4"
-              >
-                <div>
-                  <h2 class="text-sm font-bold">該当アカウント: 24件</h2>
-                  <p class="text-xs text-slate-500 mt-1">
-                    ※ 行をタップすると推移グラフが表示されます。
-                  </p>
-                </div>
-                <button class="btn btn-secondary text-sm">
-                  <i data-lucide="download" width="14"></i> CSVダウンロード
-                </button>
-              </div>
-              <div class="table-responsive">
-                <table class="data-table" style="margin-bottom: 0">
-                  <thead>
-                    <tr>
-                      <th style="padding: 12px 16px">Usersアカウント名</th>
-                      <th style="padding: 12px 16px">患者数</th>
-                      <th style="padding: 12px 16px">撮影枚数</th>
-                      <th style="padding: 12px 16px">契約日</th>
-                      <th style="padding: 12px 16px">最終ログイン</th>
-                      <th style="padding: 12px 16px; text-align: right">
-                        アクション
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      class="cursor-pointer hover:bg-slate-50 transition-colors"
-                      onclick="showCustomUserGraph(this, 'suzuki_user')"
-                    >
-                      <td style="padding: 12px 16px">
-                        <div class="inline-flex items-center gap-2">
-                          <div
-                            class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                          >
-                            Suz
-                          </div>
-                          <span
-                            class="text-primary-600 font-bold hover:underline"
-                            >suzuki_user</span
-                          >
-                        </div>
-                      </td>
-                      <td style="padding: 12px 16px">180人</td>
-                      <td style="padding: 12px 16px">250枚</td>
-                      <td style="padding: 12px 16px">2023-04-01</td>
-                      <td style="padding: 12px 16px">2024-09-30</td>
-                      <td style="padding: 12px 16px; text-align: right">
-                        <a
-                          href="customer-detail.html"
-                          class="btn btn-secondary text-xs"
-                          >詳細</a
-                        >
-                      </td>
-                    </tr>
-                    <tr
-                      class="cursor-pointer hover:bg-slate-50 transition-colors"
-                      onclick="showCustomUserGraph(this, 'sato_clinic')"
-                    >
-                      <td style="padding: 12px 16px">
-                        <div class="inline-flex items-center gap-2">
-                          <div
-                            class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                          >
-                            Sat
-                          </div>
-                          <span
-                            class="text-primary-600 font-bold hover:underline"
-                            >sato_clinic</span
-                          >
-                        </div>
-                      </td>
-                      <td style="padding: 12px 16px">45人</td>
-                      <td style="padding: 12px 16px">62枚</td>
-                      <td style="padding: 12px 16px">2024-01-15</td>
-                      <td style="padding: 12px 16px">2024-08-10</td>
-                      <td style="padding: 12px 16px; text-align: right">
-                        <a
-                          href="customer-detail.html"
-                          class="btn btn-secondary text-xs"
-                          >詳細</a
-                        >
-                      </td>
-                    </tr>
-                    <tr
-                      class="cursor-pointer hover:bg-slate-50 transition-colors"
-                      onclick="showCustomUserGraph(this, 'kansai_beauty')"
-                    >
-                      <td style="padding: 12px 16px">
-                        <div class="inline-flex items-center gap-2">
-                          <div
-                            class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                          >
-                            Kan
-                          </div>
-                          <span
-                            class="text-primary-600 font-bold hover:underline"
-                            >kansai_beauty</span
-                          >
-                        </div>
-                      </td>
-                      <td style="padding: 12px 16px">420人</td>
-                      <td style="padding: 12px 16px">890枚</td>
-                      <td style="padding: 12px 16px">2022-11-01</td>
-                      <td style="padding: 12px 16px">2024-09-29</td>
-                      <td style="padding: 12px 16px; text-align: right">
-                        <a
-                          href="customer-detail.html"
-                          class="btn btn-secondary text-xs"
-                          >詳細</a
-                        >
-                      </td>
-                    </tr>
-                    <tr
-                      class="cursor-pointer hover:bg-slate-50 transition-colors"
-                      onclick="showCustomUserGraph(this, 'nagoya_reha')"
-                    >
-                      <td style="padding: 12px 16px">
-                        <div class="inline-flex items-center gap-2">
-                          <div
-                            class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                          >
-                            Nag
-                          </div>
-                          <span
-                            class="text-primary-600 font-bold hover:underline"
-                            >nagoya_reha</span
-                          >
-                        </div>
-                      </td>
-                      <td style="padding: 12px 16px">150人</td>
-                      <td style="padding: 12px 16px">310枚</td>
-                      <td style="padding: 12px 16px">2023-08-20</td>
-                      <td style="padding: 12px 16px">2024-09-28</td>
-                      <td style="padding: 12px 16px; text-align: right">
-                        <a
-                          href="customer-detail.html"
-                          class="btn btn-secondary text-xs"
-                          >詳細</a
-                        >
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- アカウント個別推移グラフ -->
-            <div
-              id="custom-user-graph-container"
-              class="card mb-6 border-2 border-primary-100"
-              style="display: none"
-            >
-              <div
-                class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2"
-              >
-                <h2
-                  class="text-lg font-bold flex items-center gap-2 text-primary-600"
-                >
-                  <i data-lucide="line-chart" width="20"></i>
-                  <span id="custom-user-graph-title">ユーザー推移グラフ</span>
-                </h2>
-                <select
-                  id="customUserGraphPeriod"
-                  class="input w-32 text-sm"
-                  onchange="updateCustomUserGraph(this.value)"
-                >
-                  <option value="hourly">時次</option>
-                  <option value="daily">日次</option>
-                  <option value="monthly" selected>月次</option>
-                </select>
-              </div>
-              <div class="chart-container" style="height: 300px">
-                <canvas id="customUserActivityChart"></canvas>
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                導入経路別
+              </h3>
+              <div class="chart-container" style="height: 180px">
+                <canvas id="channelChart"></canvas>
               </div>
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
-    <!-- Scripts -->
-    <script src="js/sidebar.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        lucide.createIcons();
-        initCharts();
-      });
+        <!-- 4. 利用状況 (Usage) -->
+        <div id="tab-usage" class="page-tab-content">
+          <!-- 1. 主要カード -->
+          <h2 class="text-xl font-bold mb-4 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400">
+            利用サマリー
+          </h2>
+          <!-- 1. 全体サマリー -->
+          <div class="grid gap-4 mb-4" style="grid-template-columns: repeat(2, 1fr)">
+            <div class="card mb-0 p-4 flex justify-between items-center"
+              style="border-left: 4px solid var(--color-primary-500)">
+              <div>
+                <p class="text-[0.75rem] text-muted font-bold mb-1">
+                  対象期間内の総撮影枚数
+                </p>
+                <h3 class="text-2xl font-bold text-slate-800" style="margin: 0">
+                  124,500<span class="text-sm font-normal text-muted ml-1">枚</span>
+                </h3>
+              </div>
+              <div>
+                <p
+                  class="text-sm font-bold bg-success-50 text-success-700 px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <i data-lucide="arrow-up-right" width="14" height="14"></i>前月比 +5.2%
+                </p>
+              </div>
+            </div>
+            <div class="card mb-0 p-4 flex justify-between items-center"
+              style="border-left: 4px solid var(--color-primary-500)">
+              <div>
+                <p class="text-[0.75rem] text-muted font-bold mb-1">
+                  対象期間内の総登録患者数
+                </p>
+                <h3 class="text-2xl font-bold text-slate-800" style="margin: 0">
+                  46,200<span class="text-sm font-normal text-muted ml-1">人</span>
+                </h3>
+              </div>
+              <div>
+                <p
+                  class="text-sm font-bold bg-success-50 text-success-700 px-3 py-1.5 rounded-full flex items-center gap-1">
+                  <i data-lucide="arrow-up-right" width="14" height="14"></i>前月比 +3.8%
+                </p>
+              </div>
+            </div>
+          </div>
 
-      // タブ切り替え制御
-      function switchAnalyticsTab(tabId, btn) {
-        document
-          .querySelectorAll(".page-tab-content")
-          .forEach((el) => el.classList.remove("active"));
-        document
-          .querySelectorAll(".page-tab-btn")
-          .forEach((el) => el.classList.remove("active"));
+          <!-- 2. アクティブ・非アクティブ施設サマリー -->
+          <div class="grid gap-4 mb-6" style="grid-template-columns: 3fr 1fr">
+            <!-- アクティブ施設グループ -->
+            <div class="card p-5 mb-0" style="border-top: 4px solid var(--color-success)">
+              <h3 class="font-bold text-success-700 mb-4 flex items-center text-sm border-b border-slate-100 pb-2">
+                <i data-lucide="activity" width="16" class="mr-1"></i>アクティブ施設 (<span
+                  id="active-facility-period">直近365日以内に利用あり</span>)
+              </h3>
+              <div class="grid gap-4" style="grid-template-columns: repeat(4, 1fr)">
+                <div>
+                  <p class="text-[0.7rem] text-muted font-bold mb-1">
+                    アクティブ施設数 / アクティブ率
+                  </p>
+                  <h3 class="text-xl font-bold text-slate-800 mb-1" style="margin-top: 0">
+                    2,580<span class="text-xs font-normal text-muted ml-1">施設</span>
+                  </h3>
+                  <p class="text-xs font-bold text-success mb-2">(82.5%)</p>
+                  <p class="text-[0.7rem] text-success flex gap-1 items-center">
+                    <i data-lucide="arrow-up-right" width="12"></i>前月比
+                    +2.1%
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[0.7rem] text-muted font-bold mb-1">
+                    施設あたり撮影枚数
+                  </p>
+                  <h3 class="text-xl font-bold text-slate-800 mb-1" style="margin-top: 0">
+                    48.2<span class="text-xs font-normal text-muted ml-1">枚/施設</span>
+                  </h3>
+                  <p class="text-[0.7rem] text-success mt-6 flex gap-1 items-center">
+                    <i data-lucide="arrow-up-right" width="12"></i>前月比
+                    +1.5枚
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[0.7rem] text-muted font-bold mb-1">
+                    施設あたり患者数
+                  </p>
+                  <h3 class="text-xl font-bold text-slate-800 mb-1" style="margin-top: 0">
+                    45.0<span class="text-xs font-normal text-muted ml-1">人/施設</span>
+                  </h3>
+                  <p class="text-[0.7rem] text-danger mt-6 flex gap-1 items-center">
+                    <i data-lucide="arrow-down-right" width="12"></i>前月比
+                    -2.0人
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[0.7rem] text-muted font-bold mb-1">
+                    患者あたり撮影枚数
+                  </p>
+                  <h3 class="text-xl font-bold text-slate-800 mb-1" style="margin-top: 0">
+                    2.7<span class="text-xs font-normal text-muted ml-1">枚/人</span>
+                  </h3>
+                  <p class="text-[0.7rem] text-success mt-6 flex gap-1 items-center">
+                    <i data-lucide="arrow-up-right" width="12"></i>前月比
+                    +0.2枚
+                  </p>
+                </div>
+              </div>
+            </div>
 
-        document.getElementById("tab-" + tabId).classList.add("active");
-        btn.classList.add("active");
+            <!-- 非アクティブ施設グループ -->
+            <div class="card p-5 mb-0" style="border-top: 4px solid var(--color-warning)">
+              <h3 class="font-bold text-amber-700 mb-4 flex items-center text-sm border-b border-slate-100 pb-2">
+                <i data-lucide="moon" width="16" class="mr-1"></i>非アクティブ施設
+              </h3>
+              <div class="flex flex-col justify-center">
+                <p class="text-[0.7rem] text-muted font-bold mb-1">
+                  非アクティブ施設数 / 非アクティブ率
+                </p>
+                <h3 class="text-xl font-bold text-slate-800 mb-1" style="margin-top: 0">
+                  544<span class="text-xs font-normal text-muted ml-1">施設</span>
+                </h3>
+                <p class="text-xs font-bold text-warning mb-2">(17.5%)</p>
+                <p class="text-[0.7rem] text-danger mt-1 flex gap-1 items-center">
+                  <i data-lucide="arrow-up-right" width="12"></i>前月比 +0.5%
+                </p>
+              </div>
+            </div>
+          </div>
 
-        // 地図タブが表示されたら再描画（サイズ調整のため）
-        if (tabId === "distribution" && typeof drawJapanMap === "function") {
-          setTimeout(drawJapanMap, 50);
-        }
+          <!-- 2. 推移グラフ -->
+          <div class="card mb-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-bold">推移グラフ</h2>
+              <select id="usageChartPeriod" class="input w-32 text-sm" onchange="
+                    if (typeof updateUsageChart === 'function')
+                      updateUsageChart(this.value);
+                  ">
+                <option value="hourly">時次</option>
+                <option value="daily">日次</option>
+                <option value="weekly">週次</option>
+                <option value="monthly" selected>月次</option>
+              </select>
+            </div>
+            <div class="chart-container" style="height: 300px">
+              <canvas id="usageActivityChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 3. & 4. 分布割合 -->
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="card mb-0">
+              <h2 class="text-lg font-bold mb-4">ヘルススコア分布割合</h2>
+              <div class="chart-container" style="height: 250px">
+                <canvas id="healthScoreChart"></canvas>
+              </div>
+            </div>
+            <div class="card mb-0">
+              <h2 class="text-lg font-bold mb-4">患者数セグメント割合</h2>
+              <div class="chart-container" style="height: 250px">
+                <canvas id="patientSegmentChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. 利用分析 -->
+          <h2
+            class="text-xl font-bold mb-4 mt-8 bg-slate-100 p-2 rounded px-4 text-slate-700 border-l-4 border-slate-400">
+            利用分析
+          </h2>
+          <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                患者数 × 撮影枚数 (施設散布図)
+              </h3>
+              <div class="chart-container" style="height: 230px">
+                <canvas id="scatterUsageChart"></canvas>
+              </div>
+            </div>
+            <div class="card mb-0">
+              <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                患者規模別 平均撮影数
+              </h3>
+              <div class="chart-container" style="height: 230px">
+                <canvas id="avgShotsByScaleChart"></canvas>
+              </div>
+            </div>
+            <div class="card mb-0 flex flex-col justify-between">
+              <div>
+                <h3 class="text-md font-bold mb-4 text-center text-slate-700">
+                  施設別撮影ランキング
+                </h3>
+                <div style="
+                      max-height: 230px;
+                      overflow-y: auto;
+                      border: 1px solid var(--color-slate-200);
+                      border-radius: 6px;
+                    ">
+                  <table class="data-table" style="margin-bottom: 0; font-size: 0.8rem">
+                    <thead style="
+                          position: sticky;
+                          top: 0;
+                          background: #fff;
+                          z-index: 1;
+                        ">
+                      <tr>
+                        <th style="
+                              padding: 4px 8px;
+                              width: 40px;
+                              text-align: center;
+                            ">
+                          順位
+                        </th>
+                        <th style="padding: 4px 8px">施設名</th>
+                        <th style="padding: 4px 8px; text-align: right">
+                          枚数
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="
+                              padding: 4px 8px;
+                              text-align: center;
+                              font-weight: bold;
+                              color: #b45309;
+                            ">
+                          1
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          テスト整骨院
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          1,240
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="
+                              padding: 4px 8px;
+                              text-align: center;
+                              font-weight: bold;
+                              color: #64748b;
+                            ">
+                          2
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          新宿中央接骨院
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          980
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="
+                              padding: 4px 8px;
+                              text-align: center;
+                              font-weight: bold;
+                              color: #92400e;
+                            ">
+                          3
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          ABCクリニック
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          850
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 8px; text-align: center">
+                          4
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          山田カイロプラクティック
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          712
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 8px; text-align: center">
+                          5
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          名古屋リハビリハブ
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          605
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 8px; text-align: center">
+                          6
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          仙台メディカル整体
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          590
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 8px; text-align: center">
+                          7
+                        </td>
+                        <td style="padding: 4px 8px" class="truncate max-w-[100px]">
+                          品川美容サロン
+                        </td>
+                        <td style="padding: 4px 8px; text-align: right">
+                          588
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. カスタム抽出 (Custom) -->
+        <div id="tab-custom" class="page-tab-content">
+          <div class="card mb-6 p-0 overflow-hidden">
+            <!-- アコーディオンヘッダー -->
+            <button id="filter-accordion-btn" onclick="toggleFilterAccordion()"
+              class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+              style="border: none; background: none; cursor: pointer;">
+              <div class="flex items-center gap-3">
+                <i data-lucide="filter" width="16" class="text-slate-500"></i>
+                <span class="text-base font-bold text-slate-800">抽出条件</span>
+                <span id="filter-count-badge"
+                  class="text-xs bg-primary-100 text-primary-700 font-bold px-2 py-0.5 rounded-full"
+                  style="display:none;">0件設定中</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <button class="btn btn-secondary text-xs"
+                  onclick="event.stopPropagation(); clearAllFilters();">条件をクリア</button>
+                <i data-lucide="chevron-right" width="18" id="filter-chevron"
+                  class="text-slate-400 transition-transform duration-200" style="transform: rotate(0deg);"></i>
+              </div>
+            </button>
+
+            <!-- アコーディオンコンテンツ（デフォルト非表示） -->
+            <div id="filter-accordion-body" style="display: none; border-top: 1px solid #e2e8f0;">
+              <div class="p-5">
+                <!-- 動的抽出条件ビルダー -->
+                <div id="filter-builder" class="mb-4">
+                  <div class="filter-row flex items-center gap-3 mb-3">
+                    <select class="input w-48" onchange="updateFilterValues(this)">
+                      <option value="">（項目を選択）</option>
+                      <option value="area">エリア</option>
+                      <option value="status">ステータス (ヘルススコア)</option>
+                      <option value="scale">院規模</option>
+                      <option value="period">継続期間 (契約から)</option>
+                      <option value="shots">月間撮影枚数</option>
+                      <option value="channel">導入経路 / 代理店</option>
+                      <option value="timing">導入時期</option>
+                      <option value="biztype">業態</option>
+                    </select>
+                    <select class="input w-64">
+                      <option value="">（条件を選択してください）</option>
+                    </select>
+                    <button class="btn btn-secondary px-2 text-danger" style="display: none"
+                      onclick="removeFilterRow(this)">
+                      <i data-lucide="trash-2" width="16"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <button class="btn btn-secondary text-sm" onclick="addFilterRow()">
+                    <i data-lucide="plus" width="16"></i> 条件を追加
+                  </button>
+                  <button class="btn btn-primary" onclick="lucide.createIcons(); alert('条件で抽出しました');">
+                    この条件で抽出
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-0 overflow-hidden mb-6">
+            <div
+              class="p-4 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center bg-slate-50 gap-4">
+              <div>
+                <h2 class="text-sm font-bold">該当アカウント: 24件</h2>
+                <p class="text-xs text-slate-500 mt-1">
+                  ※ 行をタップすると推移グラフが表示されます。
+                </p>
+              </div>
+              <button class="btn btn-secondary text-sm">
+                <i data-lucide="download" width="14"></i> CSVダウンロード
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" style="margin-bottom: 0">
+                <thead>
+                  <tr>
+                    <th style="padding: 12px 16px">Usersアカウント名</th>
+                    <th style="padding: 12px 16px">患者数</th>
+                    <th style="padding: 12px 16px">撮影枚数</th>
+                    <th style="padding: 12px 16px">契約日</th>
+                    <th style="padding: 12px 16px">最終ログイン</th>
+                    <th style="padding: 12px 16px; text-align: right">
+                      アクション
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="cursor-pointer hover:bg-slate-50 transition-colors"
+                    onclick="showCustomUserGraph(this, 'suzuki_user')">
+                    <td style="padding: 12px 16px">
+                      <div class="inline-flex items-center gap-2">
+                        <div
+                          class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold">
+                          Suz
+                        </div>
+                        <span class="text-primary-600 font-bold hover:underline">suzuki_user</span>
+                      </div>
+                    </td>
+                    <td style="padding: 12px 16px">180人</td>
+                    <td style="padding: 12px 16px">250枚</td>
+                    <td style="padding: 12px 16px">2023-04-01</td>
+                    <td style="padding: 12px 16px">2024-09-30</td>
+                    <td style="padding: 12px 16px; text-align: right">
+                      <a href="customer-detail.html" class="btn btn-secondary text-xs">詳細</a>
+                    </td>
+                  </tr>
+                  <tr class="cursor-pointer hover:bg-slate-50 transition-colors"
+                    onclick="showCustomUserGraph(this, 'sato_clinic')">
+                    <td style="padding: 12px 16px">
+                      <div class="inline-flex items-center gap-2">
+                        <div
+                          class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold">
+                          Sat
+                        </div>
+                        <span class="text-primary-600 font-bold hover:underline">sato_clinic</span>
+                      </div>
+                    </td>
+                    <td style="padding: 12px 16px">45人</td>
+                    <td style="padding: 12px 16px">62枚</td>
+                    <td style="padding: 12px 16px">2024-01-15</td>
+                    <td style="padding: 12px 16px">2024-08-10</td>
+                    <td style="padding: 12px 16px; text-align: right">
+                      <a href="customer-detail.html" class="btn btn-secondary text-xs">詳細</a>
+                    </td>
+                  </tr>
+                  <tr class="cursor-pointer hover:bg-slate-50 transition-colors"
+                    onclick="showCustomUserGraph(this, 'kansai_beauty')">
+                    <td style="padding: 12px 16px">
+                      <div class="inline-flex items-center gap-2">
+                        <div
+                          class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold">
+                          Kan
+                        </div>
+                        <span class="text-primary-600 font-bold hover:underline">kansai_beauty</span>
+                      </div>
+                    </td>
+                    <td style="padding: 12px 16px">420人</td>
+                    <td style="padding: 12px 16px">890枚</td>
+                    <td style="padding: 12px 16px">2022-11-01</td>
+                    <td style="padding: 12px 16px">2024-09-29</td>
+                    <td style="padding: 12px 16px; text-align: right">
+                      <a href="customer-detail.html" class="btn btn-secondary text-xs">詳細</a>
+                    </td>
+                  </tr>
+                  <tr class="cursor-pointer hover:bg-slate-50 transition-colors"
+                    onclick="showCustomUserGraph(this, 'nagoya_reha')">
+                    <td style="padding: 12px 16px">
+                      <div class="inline-flex items-center gap-2">
+                        <div
+                          class="avatar bg-primary-100 text-primary-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold">
+                          Nag
+                        </div>
+                        <span class="text-primary-600 font-bold hover:underline">nagoya_reha</span>
+                      </div>
+                    </td>
+                    <td style="padding: 12px 16px">150人</td>
+                    <td style="padding: 12px 16px">310枚</td>
+                    <td style="padding: 12px 16px">2023-08-20</td>
+                    <td style="padding: 12px 16px">2024-09-28</td>
+                    <td style="padding: 12px 16px; text-align: right">
+                      <a href="customer-detail.html" class="btn btn-secondary text-xs">詳細</a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- アカウント個別推移グラフ -->
+          <div id="custom-user-graph-container" class="card mb-6 border-2 border-primary-100" style="display: none">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+              <h2 class="text-lg font-bold flex items-center gap-2 text-primary-600">
+                <i data-lucide="line-chart" width="20"></i>
+                <span id="custom-user-graph-title">ユーザー推移グラフ</span>
+              </h2>
+              <select id="customUserGraphPeriod" class="input w-32 text-sm"
+                onchange="updateCustomUserGraph(this.value)">
+                <option value="hourly">時次</option>
+                <option value="daily">日次</option>
+                <option value="monthly" selected>月次</option>
+              </select>
+            </div>
+            <div class="chart-container" style="height: 300px">
+              <canvas id="customUserActivityChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/sidebar.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      initCharts();
+    });
+
+    // タブ切り替え制御
+    function switchAnalyticsTab(tabId, btn) {
+      document
+        .querySelectorAll(".page-tab-content")
+        .forEach((el) => el.classList.remove("active"));
+      document
+        .querySelectorAll(".page-tab-btn")
+        .forEach((el) => el.classList.remove("active"));
+
+      document.getElementById("tab-" + tabId).classList.add("active");
+      btn.classList.add("active");
+
+      // 地図タブが表示されたら再描画（サイズ調整のため）
+      if (tabId === "distribution" && typeof drawJapanMap === "function") {
+        setTimeout(drawJapanMap, 50);
+      }
+    }
+
+    let growthChartInstance = null;
+    let breakdownChartInstance = null;
+
+    const mockGrowthData = {
+      users: {
+        1: {
+          labels: ["今月"],
+          total: "3,124",
+          mom: "+2.1%",
+          net: "+64",
+          mom_net: "+5",
+          new: 80,
+          mom_new: "+12%",
+          renew: 120,
+          mom_renew: "+1%",
+          churn: 16,
+          mom_churn: "-2%",
+          d_total: [3124],
+          d_new: [80],
+          d_renew: [120],
+          d_churn: [-16],
+          d_pie: [2150, 680, 294],
+        },
+        3: {
+          labels: ["2月", "3月", "4月"],
+          total: "3,124",
+          mom: "+5.4%",
+          net: "+160",
+          mom_net: "+20",
+          new: 210,
+          mom_new: "+8%",
+          renew: 350,
+          mom_renew: "+3%",
+          churn: 50,
+          mom_churn: "+1%",
+          d_total: [2964, 3050, 3124],
+          d_new: [60, 70, 80],
+          d_renew: [110, 120, 120],
+          d_churn: [-10, -24, -16],
+          d_pie: [1900, 850, 374],
+        },
+        6: {
+          labels: ["11月", "12月", "1月", "2月", "3月", "4月"],
+          total: "3,124",
+          mom: "+12.5%",
+          net: "+346",
+          mom_net: "+45",
+          new: 450,
+          mom_new: "+15%",
+          renew: 720,
+          mom_renew: "+5%",
+          churn: 104,
+          mom_churn: "-4%",
+          d_total: [2778, 2850, 2900, 2964, 3050, 3124],
+          d_new: [65, 85, 50, 60, 70, 80],
+          d_renew: [100, 120, 150, 110, 120, 120],
+          d_churn: [-15, -13, -22, -10, -24, -16],
+          d_pie: [1800, 950, 374],
+        },
+        12: {
+          labels: [
+            "23年5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "24年1",
+            "2",
+            "3",
+            "4",
+          ],
+          total: "3,124",
+          mom: "+42%",
+          net: "+924",
+          mom_net: "+86",
+          new: 1150,
+          mom_new: "+24%",
+          renew: 1420,
+          mom_renew: "+12%",
+          churn: 226,
+          mom_churn: "+2%",
+          d_total: [
+            2200, 2300, 2450, 2500, 2600, 2710, 2778, 2850, 2900, 2964, 3050,
+            3124,
+          ],
+          d_new: [110, 120, 180, 70, 130, 140, 65, 85, 50, 60, 70, 80],
+          d_renew: [
+            100, 80, 110, 140, 120, 150, 100, 120, 150, 110, 120, 120,
+          ],
+          d_churn: [
+            -10, -20, -30, -20, -30, -30, -15, -13, -22, -10, -24, -16,
+          ],
+          d_pie: [1562, 1093, 469],
+        },
+      },
+      clinics: {
+        1: {
+          labels: ["今月"],
+          total: "1,024",
+          mom: "+1.5%",
+          net: "+15",
+          mom_net: "-2",
+          new: 20,
+          mom_new: "+5%",
+          renew: 40,
+          mom_renew: "0%",
+          churn: 5,
+          mom_churn: "+1%",
+          d_total: [1024],
+          d_new: [20],
+          d_renew: [40],
+          d_churn: [-5],
+          d_pie: [600, 300, 124],
+        },
+        3: {
+          labels: ["2月", "3月", "4月"],
+          total: "1,024",
+          mom: "+4.2%",
+          net: "+41",
+          mom_net: "+5",
+          new: 55,
+          mom_new: "+10%",
+          renew: 120,
+          mom_renew: "+4%",
+          churn: 14,
+          mom_churn: "-2%",
+          d_total: [983, 1005, 1024],
+          d_new: [15, 20, 20],
+          d_renew: [35, 45, 40],
+          d_churn: [-4, -8, -5],
+          d_pie: [550, 350, 124],
+        },
+        6: {
+          labels: ["11月", "12月", "1月", "2月", "3月", "4月"],
+          total: "1,024",
+          mom: "+9.8%",
+          net: "+91",
+          mom_net: "+12",
+          new: 120,
+          mom_new: "+12%",
+          renew: 250,
+          mom_renew: "+6%",
+          churn: 29,
+          mom_churn: "-5%",
+          d_total: [933, 950, 968, 983, 1005, 1024],
+          d_new: [25, 20, 15, 15, 20, 20],
+          d_renew: [45, 40, 45, 35, 45, 40],
+          d_churn: [-5, -6, -8, -4, -8, -5],
+          d_pie: [500, 400, 124],
+        },
+        12: {
+          labels: [
+            "23年5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "24年1",
+            "2",
+            "3",
+            "4",
+          ],
+          total: "1,024",
+          mom: "+25%",
+          net: "+205",
+          mom_net: "+34",
+          new: 280,
+          mom_new: "+18%",
+          renew: 490,
+          mom_renew: "+15%",
+          churn: 75,
+          mom_churn: "+4%",
+          d_total: [
+            819, 850, 890, 895, 910, 925, 933, 950, 968, 983, 1005, 1024,
+          ],
+          d_new: [30, 40, 50, 15, 25, 25, 25, 20, 15, 15, 20, 20],
+          d_renew: [30, 40, 35, 55, 50, 45, 45, 40, 45, 35, 45, 40],
+          d_churn: [-5, -10, -15, -10, -10, -10, -5, -6, -8, -4, -8, -5],
+          d_pie: [450, 400, 174],
+        },
+      },
+    };
+
+    function setGrowthToggle(type) {
+      const toggle = document.getElementById("growth-toggle");
+      toggle.setAttribute("data-state", type);
+
+      const btns = toggle.querySelectorAll(".toggle-switch-btn");
+      btns[0].classList.toggle("active", type === "users");
+      btns[1].classList.toggle("active", type === "clinics");
+
+      updateGrowthData(type);
+    }
+
+    function updateGrowthData(forceType) {
+      const toggle = document.getElementById("growth-toggle");
+      const type = forceType || toggle.getAttribute("data-state") || "users";
+
+      const periodElem = document.getElementById("analytics-period");
+      const period = periodElem.value;
+
+      // 利用状況タブのアクティブ施設期間テキストを連動
+      const actElem = document.getElementById("active-facility-period");
+      if (actElem) {
+        const days =
+          period === "1"
+            ? "30日"
+            : period === "3"
+              ? "90日"
+              : period === "6"
+                ? "180日"
+                : "365日";
+        actElem.textContent = `直近${days}以内に利用あり`;
       }
 
-      let growthChartInstance = null;
-      let breakdownChartInstance = null;
+      const data = mockGrowthData[type][period];
 
-      const mockGrowthData = {
-        users: {
-          1: {
-            labels: ["今月"],
-            total: "3,124",
-            mom: "+2.1%",
-            net: "+64",
-            mom_net: "+5",
-            new: 80,
-            mom_new: "+12%",
-            renew: 120,
-            mom_renew: "+1%",
-            churn: 16,
-            mom_churn: "-2%",
-            d_total: [3124],
-            d_new: [80],
-            d_renew: [120],
-            d_churn: [-16],
-            d_pie: [2150, 680, 294],
-          },
-          3: {
-            labels: ["2月", "3月", "4月"],
-            total: "3,124",
-            mom: "+5.4%",
-            net: "+160",
-            mom_net: "+20",
-            new: 210,
-            mom_new: "+8%",
-            renew: 350,
-            mom_renew: "+3%",
-            churn: 50,
-            mom_churn: "+1%",
-            d_total: [2964, 3050, 3124],
-            d_new: [60, 70, 80],
-            d_renew: [110, 120, 120],
-            d_churn: [-10, -24, -16],
-            d_pie: [1900, 850, 374],
-          },
-          6: {
-            labels: ["11月", "12月", "1月", "2月", "3月", "4月"],
-            total: "3,124",
-            mom: "+12.5%",
-            net: "+346",
-            mom_net: "+45",
-            new: 450,
-            mom_new: "+15%",
-            renew: 720,
-            mom_renew: "+5%",
-            churn: 104,
-            mom_churn: "-4%",
-            d_total: [2778, 2850, 2900, 2964, 3050, 3124],
-            d_new: [65, 85, 50, 60, 70, 80],
-            d_renew: [100, 120, 150, 110, 120, 120],
-            d_churn: [-15, -13, -22, -10, -24, -16],
-            d_pie: [1800, 950, 374],
-          },
-          12: {
-            labels: [
-              "23年5",
-              "6",
-              "7",
-              "8",
-              "9",
-              "10",
-              "11",
-              "12",
-              "24年1",
-              "2",
-              "3",
-              "4",
-            ],
-            total: "3,124",
-            mom: "+42%",
-            net: "+924",
-            mom_net: "+86",
-            new: 1150,
-            mom_new: "+24%",
-            renew: 1420,
-            mom_renew: "+12%",
-            churn: 226,
-            mom_churn: "+2%",
-            d_total: [
-              2200, 2300, 2450, 2500, 2600, 2710, 2778, 2850, 2900, 2964, 3050,
-              3124,
-            ],
-            d_new: [110, 120, 180, 70, 130, 140, 65, 85, 50, 60, 70, 80],
-            d_renew: [
-              100, 80, 110, 140, 120, 150, 100, 120, 150, 110, 120, 120,
-            ],
-            d_churn: [
-              -10, -20, -30, -20, -30, -30, -15, -13, -22, -10, -24, -16,
-            ],
-            d_pie: [1562, 1093, 469],
+      document.getElementById("growth-chart-title").textContent =
+        type === "users" ? "アカウント数推移" : "法人数推移";
+
+      document.getElementById("kpi-total").textContent = data.total;
+
+      const momUp = data.mom.startsWith("+");
+      const momIcon = momUp
+        ? `<i data-lucide="trending-up" width="14" style="display:inline"></i>`
+        : `<i data-lucide="trending-down" width="14" style="display:inline"></i>`;
+      const momElem = document.getElementById("kpi-mom-total");
+      momElem.innerHTML = `${momIcon} 前期間比 ${data.mom}`;
+      momElem.className = `kpi-mini-trend ${momUp ? "text-success" : "text-danger"}`;
+
+      document.getElementById("kpi-net").textContent = data.net;
+
+      const netUp = data.mom_net.startsWith("+");
+      const netIcon = netUp
+        ? `<i data-lucide="trending-up" width="14" style="display:inline"></i>`
+        : `<i data-lucide="trending-down" width="14" style="display:inline"></i>`;
+      const netElem = document.getElementById("kpi-mom-net");
+      netElem.innerHTML = `${netIcon} 前期間比 ${data.mom_net}`;
+      netElem.className = `kpi-mini-trend ${netUp ? "text-success" : "text-danger"}`;
+
+      document.getElementById("kpi-new").textContent = data.new;
+      document.getElementById("kpi-renew").textContent = data.renew;
+      document.getElementById("kpi-churn").textContent = data.churn;
+
+      const setupMiniTrend = (id, val) => {
+        const el = document.getElementById(id);
+        if (val) {
+          const isUp = val.startsWith("+");
+          const icon = isUp
+            ? `<i data-lucide="trending-up" width="12" style="display:inline"></i>`
+            : `<i data-lucide="trending-down" width="12" style="display:inline"></i>`;
+          el.innerHTML = `${icon} ${val}`;
+          el.className = `kpi-mini-trend text-right w-16 ${val === "0%" ? "text-muted" : isUp ? "text-success" : "text-danger"}`;
+        } else {
+          el.innerHTML = "";
+        }
+      };
+      setupMiniTrend("kpi-mom-new", data.mom_new);
+      setupMiniTrend("kpi-mom-renew", data.mom_renew);
+      setupMiniTrend("kpi-mom-churn", data.mom_churn);
+
+      if (window.lucide) lucide.createIcons();
+
+      const ctx = document.getElementById("growthChart");
+      if (growthChartInstance) {
+        growthChartInstance.destroy();
+      }
+
+      const colorPrimary = "#3b82f6";
+      const colorSuccess = "#10b981";
+      const colorDanger = "#f43f5e";
+      const colorWarning = "#f59e0b";
+      const colorLight = "#cbd5e1";
+
+      // 表示するラベルの数に応じてインナーサイズを動的調整（横スクロール用）
+      const minW = Math.max(600, data.labels.length * 60);
+      document.querySelector(".chart-scroll-inner").style.minWidth =
+        minW + "px";
+
+      growthChartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: data.labels,
+          datasets: [
+            {
+              type: "line",
+              label: type === "users" ? "総アカウント数" : "総法人数",
+              data: data.d_total,
+              borderColor: colorLight,
+              backgroundColor: colorLight,
+              borderWidth: 2,
+              tension: 0.3,
+              yAxisID: "y",
+            },
+            {
+              type: "bar",
+              label: "新規獲得",
+              data: data.d_new,
+              backgroundColor: colorSuccess,
+              yAxisID: "y1",
+              borderRadius: 4,
+            },
+            {
+              type: "bar",
+              label: "更新",
+              data: data.d_renew,
+              backgroundColor: colorPrimary,
+              yAxisID: "y1",
+              borderRadius: 4,
+            },
+            {
+              type: "bar",
+              label: "解約",
+              data: data.d_churn,
+              backgroundColor: colorDanger,
+              yAxisID: "y1",
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              type: "linear",
+              display: true,
+              position: "left",
+              title: { display: true, text: "総数" },
+              beginAtZero: false,
+            },
+            y1: {
+              type: "linear",
+              display: true,
+              position: "right",
+              title: { display: true, text: "増減" },
+            },
           },
         },
-        clinics: {
-          1: {
-            labels: ["今月"],
-            total: "1,024",
-            mom: "+1.5%",
-            net: "+15",
-            mom_net: "-2",
-            new: 20,
-            mom_new: "+5%",
-            renew: 40,
-            mom_renew: "0%",
-            churn: 5,
-            mom_churn: "+1%",
-            d_total: [1024],
-            d_new: [20],
-            d_renew: [40],
-            d_churn: [-5],
-            d_pie: [600, 300, 124],
+      });
+
+      // 円グラフもここで更新
+      const ctxBD = document.getElementById("growthBreakdownChart");
+      if (breakdownChartInstance) {
+        breakdownChartInstance.destroy();
+      }
+
+      const totalPie = data.d_pie.reduce((a, b) => a + b, 0);
+      const pieLabels = ["代理店", "直販（Web）", "直販（紹介）"].map(
+        (label, idx) => {
+          const val = data.d_pie[idx];
+          const pct = totalPie > 0 ? Math.round((val / totalPie) * 100) : 0;
+          return `${label} (${val}件, ${pct}%)`;
+        },
+      );
+
+      breakdownChartInstance = new Chart(ctxBD, {
+        type: "doughnut",
+        data: {
+          labels: pieLabels,
+          datasets: [
+            {
+              data: data.d_pie,
+              backgroundColor: [colorPrimary, colorSuccess, colorWarning],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "70%",
+          plugins: {
+            legend: { position: "bottom", labels: { font: { size: 11 } } },
           },
-          3: {
-            labels: ["2月", "3月", "4月"],
-            total: "1,024",
-            mom: "+4.2%",
-            net: "+41",
-            mom_net: "+5",
-            new: 55,
-            mom_new: "+10%",
-            renew: 120,
-            mom_renew: "+4%",
-            churn: 14,
-            mom_churn: "-2%",
-            d_total: [983, 1005, 1024],
-            d_new: [15, 20, 20],
-            d_renew: [35, 45, 40],
-            d_churn: [-4, -8, -5],
-            d_pie: [550, 350, 124],
+        },
+      });
+    }
+
+    // グラフ初期化（Chart.js）
+    function initCharts() {
+      // Colors
+      const colorPrimary = "#3b82f6";
+      const colorSuccess = "#10b981";
+      const colorWarning = "#f59e0b";
+
+      // 1. アカウント推移
+      updateGrowthData();
+
+      // 2. 解約分析
+      const colorDanger = "#f43f5e";
+
+      new Chart(document.getElementById("churnPeriodComboChart"), {
+        type: "bar",
+        data: {
+          labels: ["〜1年", "〜2年", "〜3年", "〜4年", "5年〜"],
+          datasets: [
+            {
+              type: "line",
+              label: "解約率 (%)",
+              data: [12.5, 8.2, 5.1, 3.0, 1.8],
+              borderColor: colorWarning,
+              backgroundColor: colorWarning,
+              borderWidth: 2,
+              tension: 0.3,
+              yAxisID: "y1",
+            },
+            {
+              type: "bar",
+              label: "解約数 (件)",
+              data: [85, 52, 28, 15, 8],
+              backgroundColor: colorDanger,
+              yAxisID: "y",
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              type: "linear",
+              display: true,
+              position: "left",
+              title: { display: false, text: "解約数" },
+            },
+            y1: {
+              type: "linear",
+              display: true,
+              position: "right",
+              title: { display: false, text: "解約率 (%)" },
+              grid: { drawOnChartArea: false },
+            },
           },
-          6: {
-            labels: ["11月", "12月", "1月", "2月", "3月", "4月"],
-            total: "1,024",
-            mom: "+9.8%",
-            net: "+91",
-            mom_net: "+12",
-            new: 120,
-            mom_new: "+12%",
-            renew: 250,
-            mom_renew: "+6%",
-            churn: 29,
-            mom_churn: "-5%",
-            d_total: [933, 950, 968, 983, 1005, 1024],
-            d_new: [25, 20, 15, 15, 20, 20],
-            d_renew: [45, 40, 45, 35, 45, 40],
-            d_churn: [-5, -6, -8, -4, -8, -5],
-            d_pie: [500, 400, 124],
+          plugins: {
+            legend: { position: "top", labels: { font: { size: 11 } } },
           },
-          12: {
-            labels: [
-              "23年5",
-              "6",
-              "7",
-              "8",
-              "9",
-              "10",
-              "11",
-              "12",
-              "24年1",
-              "2",
-              "3",
-              "4",
-            ],
-            total: "1,024",
-            mom: "+25%",
-            net: "+205",
-            mom_net: "+34",
-            new: 280,
-            mom_new: "+18%",
-            renew: 490,
-            mom_renew: "+15%",
-            churn: 75,
-            mom_churn: "+4%",
-            d_total: [
-              819, 850, 890, 895, 910, 925, 933, 950, 968, 983, 1005, 1024,
-            ],
-            d_new: [30, 40, 50, 15, 25, 25, 25, 20, 15, 15, 20, 20],
-            d_renew: [30, 40, 35, 55, 50, 45, 45, 40, 45, 35, 45, 40],
-            d_churn: [-5, -10, -15, -10, -10, -10, -5, -6, -8, -4, -8, -5],
-            d_pie: [450, 400, 174],
+        },
+      });
+
+      new Chart(document.getElementById("churnReasonChart"), {
+        type: "polarArea",
+        data: {
+          labels: [
+            "操作性が合わない",
+            "費用対効果",
+            "機能不足",
+            "経営難/閉院",
+            "他社乗り換え",
+          ],
+          datasets: [
+            {
+              data: [35, 25, 20, 15, 5],
+              backgroundColor: [
+                "rgba(244, 63, 94, 0.7)" /* Danger */,
+                "rgba(245, 158, 11, 0.7)" /* Warning */,
+                "rgba(59, 130, 246, 0.7)" /* Primary */,
+                "rgba(148, 163, 184, 0.7)" /* Slate */,
+                "rgba(16, 185, 129, 0.7)" /* Success */,
+              ],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "right", labels: { font: { size: 10 } } },
           },
+        },
+      });
+
+      // セグメント別解約率
+      const segPieOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: {
+          legend: { position: "right", labels: { font: { size: 10 } } },
         },
       };
 
-      function setGrowthToggle(type) {
-        const toggle = document.getElementById("growth-toggle");
-        toggle.setAttribute("data-state", type);
+      new Chart(document.getElementById("churnSegBizChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["施術所", "医療機関", "トレーニング施設", "その他"],
+          datasets: [
+            {
+              data: [8.5, 6.2, 4.1, 7.0],
+              backgroundColor: ["#f43f5e", "#fb7185", "#fda4af", "#fecdd3"],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          ...segPieOptions,
+          plugins: {
+            ...segPieOptions.plugins,
+            tooltip: {
+              callbacks: {
+                label: function (c) {
+                  return c.label + ": " + c.raw + "%";
+                },
+              },
+            },
+          },
+        },
+      });
+      new Chart(document.getElementById("churnSegScaleChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["小規模(1-3)", "中規模(4-9)", "大規模(10+)"],
+          datasets: [
+            {
+              data: [9.2, 5.5, 2.1],
+              backgroundColor: ["#3b82f6", "#60a5fa", "#93c5fd"],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          ...segPieOptions,
+          plugins: {
+            ...segPieOptions.plugins,
+            tooltip: {
+              callbacks: {
+                label: function (c) {
+                  return c.label + ": " + c.raw + "%";
+                },
+              },
+            },
+          },
+        },
+      });
+      new Chart(document.getElementById("churnSegDistChart"), {
+        type: "bar",
+        data: {
+          labels: ["代理店A", "代理店B", "Web直接", "紹介"],
+          datasets: [
+            {
+              label: "解約率(%)",
+              data: [11.5, 9.0, 5.2, 3.1],
+              backgroundColor: "#10b981",
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } },
+        },
+      });
 
-        const btns = toggle.querySelectorAll(".toggle-switch-btn");
-        btns[0].classList.toggle("active", type === "users");
-        btns[1].classList.toggle("active", type === "clinics");
+      // 3. 顧客分布 (属性)
+      const distPieOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: {
+          legend: { position: "bottom", labels: { font: { size: 11 } } },
+        },
+      };
+      new Chart(document.getElementById("bizTypeChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["施術所", "医療機関", "トレーニング施設", "その他"],
+          datasets: [
+            {
+              data: [45, 30, 15, 10],
+              backgroundColor: ["#86efac", "#34d399", "#047857", "#e2e8f0"],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: distPieOptions,
+      });
+      new Chart(document.getElementById("scaleChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["小規模(1-3)", "中規模(4-9)", "大規模(10+)"],
+          datasets: [
+            {
+              data: [60, 30, 10],
+              backgroundColor: ["#bfdbfe", "#60a5fa", "#1e40af"],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: distPieOptions,
+      });
+      new Chart(document.getElementById("channelChart"), {
+        type: "bar",
+        data: {
+          labels: ["代理店A", "代理店B", "Web直接", "紹介"],
+          datasets: [
+            {
+              label: "導入割合(%)",
+              data: [40, 25, 25, 10],
+              backgroundColor: "#10b981",
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } },
+        },
+      });
 
-        updateGrowthData(type);
-      }
+      // 4. 利用状況 - 推移グラフ
+      const mockUsageData = {
+        hourly: {
+          labels: [
+            "10:00",
+            "11:00",
+            "12:00",
+            "13:00",
+            "14:00",
+            "15:00",
+            "16:00",
+            "17:00",
+          ],
+          active: [120, 150, 110, 130, 180, 160, 140, 95],
+          shots: [4.5, 6.2, 3.8, 5.0, 8.1, 7.5, 5.8, 3.2],
+          patients: [1.2, 1.8, 0.9, 1.4, 2.5, 2.1, 1.5, 0.8],
+        },
+        daily: {
+          labels: ["1日", "2日", "3日", "4日", "5日", "6日", "7日"],
+          active: [1250, 1280, 1300, 1150, 1100, 800, 750],
+          shots: [32, 35, 38, 29, 28, 15, 12],
+          patients: [8, 9, 10, 7, 7, 3, 2],
+        },
+        weekly: {
+          labels: ["第1週", "第2週", "第3週", "第4週"],
+          active: [2050, 2120, 2180, 2250],
+          shots: [68, 75, 82, 90],
+          patients: [15, 18, 22, 25],
+        },
+        monthly: {
+          labels: ["4月", "5月", "6月", "7月", "8月", "9月"],
+          active: [1850, 2010, 2150, 2280, 2410, 2580],
+          shots: [85, 92, 105, 112, 118, 124],
+          patients: [20, 24, 28, 35, 41, 46],
+        },
+      };
 
-      function updateGrowthData(forceType) {
-        const toggle = document.getElementById("growth-toggle");
-        const type = forceType || toggle.getAttribute("data-state") || "users";
-
-        const periodElem = document.getElementById("analytics-period");
-        const period = periodElem.value;
-
-        // 利用状況タブのアクティブ施設期間テキストを連動
-        const actElem = document.getElementById("active-facility-period");
-        if (actElem) {
-          const days =
-            period === "1"
-              ? "30日"
-              : period === "3"
-                ? "90日"
-                : period === "6"
-                  ? "180日"
-                  : "365日";
-          actElem.textContent = `直近${days}以内に利用あり`;
-        }
-
-        const data = mockGrowthData[type][period];
-
-        document.getElementById("growth-chart-title").textContent =
-          type === "users" ? "アカウント数推移" : "法人数推移";
-
-        document.getElementById("kpi-total").textContent = data.total;
-
-        const momUp = data.mom.startsWith("+");
-        const momIcon = momUp
-          ? `<i data-lucide="trending-up" width="14" style="display:inline"></i>`
-          : `<i data-lucide="trending-down" width="14" style="display:inline"></i>`;
-        const momElem = document.getElementById("kpi-mom-total");
-        momElem.innerHTML = `${momIcon} 前期間比 ${data.mom}`;
-        momElem.className = `kpi-mini-trend ${momUp ? "text-success" : "text-danger"}`;
-
-        document.getElementById("kpi-net").textContent = data.net;
-
-        const netUp = data.mom_net.startsWith("+");
-        const netIcon = netUp
-          ? `<i data-lucide="trending-up" width="14" style="display:inline"></i>`
-          : `<i data-lucide="trending-down" width="14" style="display:inline"></i>`;
-        const netElem = document.getElementById("kpi-mom-net");
-        netElem.innerHTML = `${netIcon} 前期間比 ${data.mom_net}`;
-        netElem.className = `kpi-mini-trend ${netUp ? "text-success" : "text-danger"}`;
-
-        document.getElementById("kpi-new").textContent = data.new;
-        document.getElementById("kpi-renew").textContent = data.renew;
-        document.getElementById("kpi-churn").textContent = data.churn;
-
-        const setupMiniTrend = (id, val) => {
-          const el = document.getElementById(id);
-          if (val) {
-            const isUp = val.startsWith("+");
-            const icon = isUp
-              ? `<i data-lucide="trending-up" width="12" style="display:inline"></i>`
-              : `<i data-lucide="trending-down" width="12" style="display:inline"></i>`;
-            el.innerHTML = `${icon} ${val}`;
-            el.className = `kpi-mini-trend text-right w-16 ${val === "0%" ? "text-muted" : isUp ? "text-success" : "text-danger"}`;
-          } else {
-            el.innerHTML = "";
-          }
-        };
-        setupMiniTrend("kpi-mom-new", data.mom_new);
-        setupMiniTrend("kpi-mom-renew", data.mom_renew);
-        setupMiniTrend("kpi-mom-churn", data.mom_churn);
-
-        if (window.lucide) lucide.createIcons();
-
-        const ctx = document.getElementById("growthChart");
-        if (growthChartInstance) {
-          growthChartInstance.destroy();
-        }
-
-        const colorPrimary = "#3b82f6";
-        const colorSuccess = "#10b981";
-        const colorDanger = "#f43f5e";
-        const colorWarning = "#f59e0b";
-        const colorLight = "#cbd5e1";
-
-        // 表示するラベルの数に応じてインナーサイズを動的調整（横スクロール用）
-        const minW = Math.max(600, data.labels.length * 60);
-        document.querySelector(".chart-scroll-inner").style.minWidth =
-          minW + "px";
-
-        growthChartInstance = new Chart(ctx, {
-          type: "bar",
+      window.usageActivityChartInstance = new Chart(
+        document.getElementById("usageActivityChart"),
+        {
+          type: "line",
           data: {
-            labels: data.labels,
+            labels: mockUsageData.monthly.labels,
             datasets: [
               {
-                type: "line",
-                label: type === "users" ? "総アカウント数" : "総法人数",
-                data: data.d_total,
-                borderColor: colorLight,
-                backgroundColor: colorLight,
-                borderWidth: 2,
-                tension: 0.3,
-                yAxisID: "y",
-              },
-              {
                 type: "bar",
-                label: "新規獲得",
-                data: data.d_new,
-                backgroundColor: colorSuccess,
+                label: "アクティブ施設数",
+                data: mockUsageData.monthly.active,
+                backgroundColor: "#e2e8f0",
                 yAxisID: "y1",
                 borderRadius: 4,
               },
               {
-                type: "bar",
-                label: "更新",
-                data: data.d_renew,
+                label: "撮影件数 (単位: 千)",
+                data: mockUsageData.monthly.shots,
+                borderColor: colorPrimary,
                 backgroundColor: colorPrimary,
-                yAxisID: "y1",
-                borderRadius: 4,
-              },
-              {
-                type: "bar",
-                label: "解約",
-                data: data.d_churn,
-                backgroundColor: colorDanger,
-                yAxisID: "y1",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                type: "linear",
-                display: true,
-                position: "left",
-                title: { display: true, text: "総数" },
-                beginAtZero: false,
-              },
-              y1: {
-                type: "linear",
-                display: true,
-                position: "right",
-                title: { display: true, text: "増減" },
-              },
-            },
-          },
-        });
-
-        // 円グラフもここで更新
-        const ctxBD = document.getElementById("growthBreakdownChart");
-        if (breakdownChartInstance) {
-          breakdownChartInstance.destroy();
-        }
-
-        const totalPie = data.d_pie.reduce((a, b) => a + b, 0);
-        const pieLabels = ["代理店", "直販（Web）", "直販（紹介）"].map(
-          (label, idx) => {
-            const val = data.d_pie[idx];
-            const pct = totalPie > 0 ? Math.round((val / totalPie) * 100) : 0;
-            return `${label} (${val}件, ${pct}%)`;
-          },
-        );
-
-        breakdownChartInstance = new Chart(ctxBD, {
-          type: "doughnut",
-          data: {
-            labels: pieLabels,
-            datasets: [
-              {
-                data: data.d_pie,
-                backgroundColor: [colorPrimary, colorSuccess, colorWarning],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "70%",
-            plugins: {
-              legend: { position: "bottom", labels: { font: { size: 11 } } },
-            },
-          },
-        });
-      }
-
-      // グラフ初期化（Chart.js）
-      function initCharts() {
-        // Colors
-        const colorPrimary = "#3b82f6";
-        const colorSuccess = "#10b981";
-        const colorWarning = "#f59e0b";
-
-        // 1. アカウント推移
-        updateGrowthData();
-
-        // 2. 解約分析
-        const colorDanger = "#f43f5e";
-
-        new Chart(document.getElementById("churnPeriodComboChart"), {
-          type: "bar",
-          data: {
-            labels: ["〜1年", "〜2年", "〜3年", "〜4年", "5年〜"],
-            datasets: [
-              {
-                type: "line",
-                label: "解約率 (%)",
-                data: [12.5, 8.2, 5.1, 3.0, 1.8],
-                borderColor: colorWarning,
-                backgroundColor: colorWarning,
-                borderWidth: 2,
+                fill: false,
                 tension: 0.3,
-                yAxisID: "y1",
+                yAxisID: "y",
               },
               {
-                type: "bar",
-                label: "解約数 (件)",
-                data: [85, 52, 28, 15, 8],
-                backgroundColor: colorDanger,
+                label: "患者数 (単位: 千)",
+                data: mockUsageData.monthly.patients,
+                borderColor: colorSuccess,
+                backgroundColor: colorSuccess,
+                fill: false,
+                tension: 0.3,
                 yAxisID: "y",
-                borderRadius: 4,
               },
             ],
           },
@@ -1802,561 +1774,292 @@
                 type: "linear",
                 display: true,
                 position: "left",
-                title: { display: false, text: "解約数" },
+                title: { display: false },
               },
               y1: {
                 type: "linear",
                 display: true,
                 position: "right",
-                title: { display: false, text: "解約率 (%)" },
+                title: { display: false },
                 grid: { drawOnChartArea: false },
               },
             },
             plugins: {
-              legend: { position: "top", labels: { font: { size: 11 } } },
-            },
-          },
-        });
-
-        new Chart(document.getElementById("churnReasonChart"), {
-          type: "polarArea",
-          data: {
-            labels: [
-              "操作性が合わない",
-              "費用対効果",
-              "機能不足",
-              "経営難/閉院",
-              "他社乗り換え",
-            ],
-            datasets: [
-              {
-                data: [35, 25, 20, 15, 5],
-                backgroundColor: [
-                  "rgba(244, 63, 94, 0.7)" /* Danger */,
-                  "rgba(245, 158, 11, 0.7)" /* Warning */,
-                  "rgba(59, 130, 246, 0.7)" /* Primary */,
-                  "rgba(148, 163, 184, 0.7)" /* Slate */,
-                  "rgba(16, 185, 129, 0.7)" /* Success */,
-                ],
+              legend: {
+                position: "top",
+                labels: {
+                  font: { size: 11 },
+                  usePointStyle: true,
+                  boxWidth: 8,
+                },
               },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: "right", labels: { font: { size: 10 } } },
             },
           },
-        });
+        },
+      );
 
-        // セグメント別解約率
-        const segPieOptions = {
+      // 推移グラフの期間切り替え関数
+      window.updateUsageChart = function (period) {
+        const data = mockUsageData[period];
+        if (window.usageActivityChartInstance && data) {
+          window.usageActivityChartInstance.data.labels = data.labels;
+          window.usageActivityChartInstance.data.datasets[0].data =
+            data.active;
+          window.usageActivityChartInstance.data.datasets[1].data =
+            data.shots;
+          window.usageActivityChartInstance.data.datasets[2].data =
+            data.patients;
+          window.usageActivityChartInstance.update();
+        }
+      };
+
+      // ヘルススコア分布
+      new Chart(document.getElementById("healthScoreChart"), {
+        type: "doughnut",
+        data: {
+          labels: [
+            "超アクティブ(月100+)",
+            "高アクティブ(月50-99)",
+            "通常(月10-49)",
+            "低頻度(月1-9)",
+            "休眠(30日無)",
+            "完全休眠(90日無)",
+          ],
+          datasets: [
+            {
+              data: [15, 30, 35, 10, 6, 4],
+              backgroundColor: [
+                "#1d4ed8", // Blue-700
+                colorPrimary,
+                colorSuccess,
+                colorWarning,
+                "#f43f5e", // Rose-500
+                "#9f1239", // Rose-800
+              ],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "65%",
+          cutout: "60%",
           plugins: {
             legend: { position: "right", labels: { font: { size: 10 } } },
           },
-        };
+        },
+      });
 
-        new Chart(document.getElementById("churnSegBizChart"), {
-          type: "doughnut",
-          data: {
-            labels: ["施術所", "医療機関", "トレーニング施設", "その他"],
-            datasets: [
-              {
-                data: [8.5, 6.2, 4.1, 7.0],
-                backgroundColor: ["#f43f5e", "#fb7185", "#fda4af", "#fecdd3"],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: {
-            ...segPieOptions,
-            plugins: {
-              ...segPieOptions.plugins,
-              tooltip: {
-                callbacks: {
-                  label: function (c) {
-                    return c.label + ": " + c.raw + "%";
-                  },
-                },
-              },
+      // 患者数セグメント
+      new Chart(document.getElementById("patientSegmentChart"), {
+        type: "doughnut",
+        data: {
+          labels: [
+            "〜50人",
+            "51〜200人",
+            "201〜500人",
+            "501〜1000人",
+            "1000人以上",
+          ],
+          datasets: [
+            {
+              data: [45, 30, 15, 7, 3],
+              backgroundColor: [
+                "#94a3b8",
+                "#64748b",
+                "#cbd5e1",
+                colorPrimary,
+                "#1e40af",
+              ],
+              borderWidth: 0,
             },
-          },
-        });
-        new Chart(document.getElementById("churnSegScaleChart"), {
-          type: "doughnut",
-          data: {
-            labels: ["小規模(1-3)", "中規模(4-9)", "大規模(10+)"],
-            datasets: [
-              {
-                data: [9.2, 5.5, 2.1],
-                backgroundColor: ["#3b82f6", "#60a5fa", "#93c5fd"],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: {
-            ...segPieOptions,
-            plugins: {
-              ...segPieOptions.plugins,
-              tooltip: {
-                callbacks: {
-                  label: function (c) {
-                    return c.label + ": " + c.raw + "%";
-                  },
-                },
-              },
-            },
-          },
-        });
-        new Chart(document.getElementById("churnSegDistChart"), {
-          type: "bar",
-          data: {
-            labels: ["代理店A", "代理店B", "Web直接", "紹介"],
-            datasets: [
-              {
-                label: "解約率(%)",
-                data: [11.5, 9.0, 5.2, 3.1],
-                backgroundColor: "#10b981",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } },
-          },
-        });
-
-        // 3. 顧客分布 (属性)
-        const distPieOptions = {
+          ],
+        },
+        options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "65%",
+          cutout: "60%",
           plugins: {
-            legend: { position: "bottom", labels: { font: { size: 11 } } },
+            legend: { position: "right", labels: { font: { size: 10 } } },
           },
-        };
-        new Chart(document.getElementById("bizTypeChart"), {
-          type: "doughnut",
-          data: {
-            labels: ["施術所", "医療機関", "トレーニング施設", "その他"],
-            datasets: [
-              {
-                data: [45, 30, 15, 10],
-                backgroundColor: ["#86efac", "#34d399", "#047857", "#e2e8f0"],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: distPieOptions,
-        });
-        new Chart(document.getElementById("scaleChart"), {
-          type: "doughnut",
-          data: {
-            labels: ["小規模(1-3)", "中規模(4-9)", "大規模(10+)"],
-            datasets: [
-              {
-                data: [60, 30, 10],
-                backgroundColor: ["#bfdbfe", "#60a5fa", "#1e40af"],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: distPieOptions,
-        });
-        new Chart(document.getElementById("channelChart"), {
-          type: "bar",
-          data: {
-            labels: ["代理店A", "代理店B", "Web直接", "紹介"],
-            datasets: [
-              {
-                label: "導入割合(%)",
-                data: [40, 25, 25, 10],
-                backgroundColor: "#10b981",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } },
-          },
-        });
+        },
+      });
 
-        // 4. 利用状況 - 推移グラフ
-        const mockUsageData = {
-          hourly: {
-            labels: [
-              "10:00",
-              "11:00",
-              "12:00",
-              "13:00",
-              "14:00",
-              "15:00",
-              "16:00",
-              "17:00",
-            ],
-            active: [120, 150, 110, 130, 180, 160, 140, 95],
-            shots: [4.5, 6.2, 3.8, 5.0, 8.1, 7.5, 5.8, 3.2],
-            patients: [1.2, 1.8, 0.9, 1.4, 2.5, 2.1, 1.5, 0.8],
-          },
-          daily: {
-            labels: ["1日", "2日", "3日", "4日", "5日", "6日", "7日"],
-            active: [1250, 1280, 1300, 1150, 1100, 800, 750],
-            shots: [32, 35, 38, 29, 28, 15, 12],
-            patients: [8, 9, 10, 7, 7, 3, 2],
-          },
-          weekly: {
-            labels: ["第1週", "第2週", "第3週", "第4週"],
-            active: [2050, 2120, 2180, 2250],
-            shots: [68, 75, 82, 90],
-            patients: [15, 18, 22, 25],
-          },
-          monthly: {
-            labels: ["4月", "5月", "6月", "7月", "8月", "9月"],
-            active: [1850, 2010, 2150, 2280, 2410, 2580],
-            shots: [85, 92, 105, 112, 118, 124],
-            patients: [20, 24, 28, 35, 41, 46],
-          },
-        };
-
-        window.usageActivityChartInstance = new Chart(
-          document.getElementById("usageActivityChart"),
-          {
-            type: "line",
-            data: {
-              labels: mockUsageData.monthly.labels,
-              datasets: [
-                {
-                  type: "bar",
-                  label: "アクティブ施設数",
-                  data: mockUsageData.monthly.active,
-                  backgroundColor: "#e2e8f0",
-                  yAxisID: "y1",
-                  borderRadius: 4,
-                },
-                {
-                  label: "撮影件数 (単位: 千)",
-                  data: mockUsageData.monthly.shots,
-                  borderColor: colorPrimary,
-                  backgroundColor: colorPrimary,
-                  fill: false,
-                  tension: 0.3,
-                  yAxisID: "y",
-                },
-                {
-                  label: "患者数 (単位: 千)",
-                  data: mockUsageData.monthly.patients,
-                  borderColor: colorSuccess,
-                  backgroundColor: colorSuccess,
-                  fill: false,
-                  tension: 0.3,
-                  yAxisID: "y",
-                },
+      // 利用分析：散布図
+      new Chart(document.getElementById("scatterUsageChart"), {
+        type: "scatter",
+        data: {
+          datasets: [
+            {
+              label: "施設",
+              data: [
+                { x: 10, y: 20 },
+                { x: 40, y: 120 },
+                { x: 60, y: 150 },
+                { x: 200, y: 300 },
+                { x: 150, y: 50 },
+                { x: 500, y: 800 },
+                { x: 80, y: 90 },
+                { x: 350, y: 400 },
+                { x: 900, y: 1000 },
+                { x: 45, y: 200 },
+                { x: 600, y: 650 },
+                { x: 250, y: 180 },
               ],
+              backgroundColor: "rgba(59, 130, 246, 0.5)",
+              borderColor: colorPrimary,
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                y: {
-                  type: "linear",
-                  display: true,
-                  position: "left",
-                  title: { display: false },
-                },
-                y1: {
-                  type: "linear",
-                  display: true,
-                  position: "right",
-                  title: { display: false },
-                  grid: { drawOnChartArea: false },
-                },
-              },
-              plugins: {
-                legend: {
-                  position: "top",
-                  labels: {
-                    font: { size: 11 },
-                    usePointStyle: true,
-                    boxWidth: 8,
-                  },
-                },
-              },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: "患者数 (人)" } },
+            y: { title: { display: true, text: "撮影枚数 (枚)" } },
+          },
+          plugins: { legend: { display: false } },
+        },
+      });
+
+      // 利用分析：棒グラフ
+      new Chart(document.getElementById("avgShotsByScaleChart"), {
+        type: "bar",
+        data: {
+          labels: [
+            "〜50人",
+            "51〜200人",
+            "201〜500人",
+            "501〜1000人",
+            "1000人以上",
+          ],
+          datasets: [
+            {
+              label: "平均撮影数 (枚)",
+              data: [15, 45, 120, 250, 480],
+              backgroundColor: "#10b981",
+              borderRadius: 4,
             },
-          },
-        );
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+        },
+      });
+    }
 
-        // 推移グラフの期間切り替え関数
-        window.updateUsageChart = function (period) {
-          const data = mockUsageData[period];
-          if (window.usageActivityChartInstance && data) {
-            window.usageActivityChartInstance.data.labels = data.labels;
-            window.usageActivityChartInstance.data.datasets[0].data =
-              data.active;
-            window.usageActivityChartInstance.data.datasets[1].data =
-              data.shots;
-            window.usageActivityChartInstance.data.datasets[2].data =
-              data.patients;
-            window.usageActivityChartInstance.update();
-          }
-        };
+    // ===== 日本地図ヒートマップ (Google Charts) & 都道府県ランキング =====
+    let japanMapLoaded = false;
+    function drawJapanMap() {
+      if (
+        typeof google === "undefined" ||
+        !google.visualization ||
+        !document.getElementById("japan-map-container")
+      )
+        return;
 
-        // ヘルススコア分布
-        new Chart(document.getElementById("healthScoreChart"), {
-          type: "doughnut",
-          data: {
-            labels: [
-              "超アクティブ(月100+)",
-              "高アクティブ(月50-99)",
-              "通常(月10-49)",
-              "低頻度(月1-9)",
-              "休眠(30日無)",
-              "完全休眠(90日無)",
-            ],
-            datasets: [
-              {
-                data: [15, 30, 35, 10, 6, 4],
-                backgroundColor: [
-                  "#1d4ed8", // Blue-700
-                  colorPrimary,
-                  colorSuccess,
-                  colorWarning,
-                  "#f43f5e", // Rose-500
-                  "#9f1239", // Rose-800
-                ],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "60%",
-            plugins: {
-              legend: { position: "right", labels: { font: { size: 10 } } },
-            },
-          },
-        });
+      // 47都道府県の全データ
+      const prefDataRaw = [
+        ["北海道", 45],
+        ["青森県", 12],
+        ["岩手県", 10],
+        ["宮城県", 25],
+        ["秋田県", 8],
+        ["山形県", 11],
+        ["福島県", 15],
+        ["茨城県", 30],
+        ["栃木県", 25],
+        ["群馬県", 22],
+        ["埼玉県", 85],
+        ["千葉県", 70],
+        ["東京都", 245],
+        ["神奈川県", 120],
+        ["新潟県", 18],
+        ["富山県", 10],
+        ["石川県", 15],
+        ["福井県", 8],
+        ["山梨県", 12],
+        ["長野県", 20],
+        ["岐阜県", 25],
+        ["静岡県", 45],
+        ["愛知県", 95],
+        ["三重県", 20],
+        ["滋賀県", 15],
+        ["京都府", 40],
+        ["大阪府", 152],
+        ["兵庫県", 65],
+        ["奈良県", 18],
+        ["和歌山県", 12],
+        ["鳥取県", 5],
+        ["島根県", 4],
+        ["岡山県", 25],
+        ["広島県", 35],
+        ["山口県", 15],
+        ["徳島県", 8],
+        ["香川県", 12],
+        ["愛媛県", 15],
+        ["高知県", 6],
+        ["福岡県", 78],
+        ["佐賀県", 10],
+        ["長崎県", 15],
+        ["熊本県", 25],
+        ["大分県", 12],
+        ["宮崎県", 10],
+        ["鹿児島県", 18],
+        ["沖縄県", 22],
+      ];
 
-        // 患者数セグメント
-        new Chart(document.getElementById("patientSegmentChart"), {
-          type: "doughnut",
-          data: {
-            labels: [
-              "〜50人",
-              "51〜200人",
-              "201〜500人",
-              "501〜1000人",
-              "1000人以上",
-            ],
-            datasets: [
-              {
-                data: [45, 30, 15, 7, 3],
-                backgroundColor: [
-                  "#94a3b8",
-                  "#64748b",
-                  "#cbd5e1",
-                  colorPrimary,
-                  "#1e40af",
-                ],
-                borderWidth: 0,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "60%",
-            plugins: {
-              legend: { position: "right", labels: { font: { size: 10 } } },
-            },
-          },
-        });
+      // Google Charts用のデータ生成
+      const chartDataArray = [["都道府県", "導入数"], ...prefDataRaw];
+      const data = google.visualization.arrayToDataTable(chartDataArray);
 
-        // 利用分析：散布図
-        new Chart(document.getElementById("scatterUsageChart"), {
-          type: "scatter",
-          data: {
-            datasets: [
-              {
-                label: "施設",
-                data: [
-                  { x: 10, y: 20 },
-                  { x: 40, y: 120 },
-                  { x: 60, y: 150 },
-                  { x: 200, y: 300 },
-                  { x: 150, y: 50 },
-                  { x: 500, y: 800 },
-                  { x: 80, y: 90 },
-                  { x: 350, y: 400 },
-                  { x: 900, y: 1000 },
-                  { x: 45, y: 200 },
-                  { x: 600, y: 650 },
-                  { x: 250, y: 180 },
-                ],
-                backgroundColor: "rgba(59, 130, 246, 0.5)",
-                borderColor: colorPrimary,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { title: { display: true, text: "患者数 (人)" } },
-              y: { title: { display: true, text: "撮影枚数 (枚)" } },
-            },
-            plugins: { legend: { display: false } },
-          },
-        });
+      const options = {
+        region: "JP",
+        resolution: "provinces",
+        colorAxis: {
+          colors: ["#eff6ff", "#1d4ed8"],
+        } /* primary-50 to primary-700 */,
+        backgroundColor: "transparent",
+        datalessRegionColor: "#f8fafc",
+        defaultColor: "#f1f5f9",
+      };
 
-        // 利用分析：棒グラフ
-        new Chart(document.getElementById("avgShotsByScaleChart"), {
-          type: "bar",
-          data: {
-            labels: [
-              "〜50人",
-              "51〜200人",
-              "201〜500人",
-              "501〜1000人",
-              "1000人以上",
-            ],
-            datasets: [
-              {
-                label: "平均撮影数 (枚)",
-                data: [15, 45, 120, 250, 480],
-                backgroundColor: "#10b981",
-                borderRadius: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-          },
-        });
-      }
+      const chart = new google.visualization.GeoChart(
+        document.getElementById("japan-map-container"),
+      );
+      chart.draw(data, options);
+      japanMapLoaded = true;
 
-      // ===== 日本地図ヒートマップ (Google Charts) & 都道府県ランキング =====
-      let japanMapLoaded = false;
-      function drawJapanMap() {
-        if (
-          typeof google === "undefined" ||
-          !google.visualization ||
-          !document.getElementById("japan-map-container")
-        )
-          return;
+      // ランキングテーブルの生成
+      generateRankingTable(prefDataRaw);
+    }
 
-        // 47都道府県の全データ
-        const prefDataRaw = [
-          ["北海道", 45],
-          ["青森県", 12],
-          ["岩手県", 10],
-          ["宮城県", 25],
-          ["秋田県", 8],
-          ["山形県", 11],
-          ["福島県", 15],
-          ["茨城県", 30],
-          ["栃木県", 25],
-          ["群馬県", 22],
-          ["埼玉県", 85],
-          ["千葉県", 70],
-          ["東京都", 245],
-          ["神奈川県", 120],
-          ["新潟県", 18],
-          ["富山県", 10],
-          ["石川県", 15],
-          ["福井県", 8],
-          ["山梨県", 12],
-          ["長野県", 20],
-          ["岐阜県", 25],
-          ["静岡県", 45],
-          ["愛知県", 95],
-          ["三重県", 20],
-          ["滋賀県", 15],
-          ["京都府", 40],
-          ["大阪府", 152],
-          ["兵庫県", 65],
-          ["奈良県", 18],
-          ["和歌山県", 12],
-          ["鳥取県", 5],
-          ["島根県", 4],
-          ["岡山県", 25],
-          ["広島県", 35],
-          ["山口県", 15],
-          ["徳島県", 8],
-          ["香川県", 12],
-          ["愛媛県", 15],
-          ["高知県", 6],
-          ["福岡県", 78],
-          ["佐賀県", 10],
-          ["長崎県", 15],
-          ["熊本県", 25],
-          ["大分県", 12],
-          ["宮崎県", 10],
-          ["鹿児島県", 18],
-          ["沖縄県", 22],
-        ];
+    function generateRankingTable(prefData) {
+      const tbody = document.getElementById("prefecture-ranking-body");
+      if (!tbody) return;
 
-        // Google Charts用のデータ生成
-        const chartDataArray = [["都道府県", "導入数"], ...prefDataRaw];
-        const data = google.visualization.arrayToDataTable(chartDataArray);
+      // 導入数で降順ソート
+      const sortedData = [...prefData].sort((a, b) => b[1] - a[1]);
+      const total = sortedData.reduce((sum, item) => sum + item[1], 0);
 
-        const options = {
-          region: "JP",
-          resolution: "provinces",
-          colorAxis: {
-            colors: ["#eff6ff", "#1d4ed8"],
-          } /* primary-50 to primary-700 */,
-          backgroundColor: "transparent",
-          datalessRegionColor: "#f8fafc",
-          defaultColor: "#f1f5f9",
-        };
+      let html = "";
+      sortedData.forEach((item, index) => {
+        const pref = item[0];
+        const count = item[1];
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
 
-        const chart = new google.visualization.GeoChart(
-          document.getElementById("japan-map-container"),
-        );
-        chart.draw(data, options);
-        japanMapLoaded = true;
+        // 1~3位はメダル風のスタイル
+        let rankHtml = `${index + 1}`;
+        if (index === 0)
+          rankHtml = `<span style="display:inline-block; width:24px; height:24px; line-height:24px; background:#fbbf24; color:#fff; border-radius:50%; text-align:center; font-weight:bold; font-size:12px;">1</span>`;
+        if (index === 1)
+          rankHtml = `<span style="display:inline-block; width:24px; height:24px; line-height:24px; background:#94a3b8; color:#fff; border-radius:50%; text-align:center; font-weight:bold; font-size:12px;">2</span>`;
+        if (index === 2)
+          rankHtml = `<span style="display:inline-block; width:24px; height:24px; line-height:24px; background:#b45309; color:#fff; border-radius:50%; text-align:center; font-weight:bold; font-size:12px;">3</span>`;
 
-        // ランキングテーブルの生成
-        generateRankingTable(prefDataRaw);
-      }
-
-      function generateRankingTable(prefData) {
-        const tbody = document.getElementById("prefecture-ranking-body");
-        if (!tbody) return;
-
-        // 導入数で降順ソート
-        const sortedData = [...prefData].sort((a, b) => b[1] - a[1]);
-        const total = sortedData.reduce((sum, item) => sum + item[1], 0);
-
-        let html = "";
-        sortedData.forEach((item, index) => {
-          const pref = item[0];
-          const count = item[1];
-          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-
-          // 1~3位はメダル風のスタイル
-          let rankHtml = `${index + 1}`;
-          if (index === 0)
-            rankHtml = `<span style="display:inline-block; width:24px; height:24px; line-height:24px; background:#fbbf24; color:#fff; border-radius:50%; text-align:center; font-weight:bold; font-size:12px;">1</span>`;
-          if (index === 1)
-            rankHtml = `<span style="display:inline-block; width:24px; height:24px; line-height:24px; background:#94a3b8; color:#fff; border-radius:50%; text-align:center; font-weight:bold; font-size:12px;">2</span>`;
-          if (index === 2)
-            rankHtml = `<span style="display:inline-block; width:24px; height:24px; line-height:24px; background:#b45309; color:#fff; border-radius:50%; text-align:center; font-weight:bold; font-size:12px;">3</span>`;
-
-          html += `
+        html += `
                     <tr>
                         <td style="padding:8px 12px; text-align:center;">${rankHtml}</td>
                         <td style="padding:8px 12px">${pref}</td>
@@ -2364,118 +2067,118 @@
                         <td style="padding:8px 12px; text-align:right" class="text-muted">${pct}%</td>
                     </tr>
                 `;
-        });
-        tbody.innerHTML = html;
-      }
+      });
+      tbody.innerHTML = html;
+    }
 
-      // Initialize Google Charts
-      if (typeof google !== "undefined") {
-        google.charts.load("current", {
-          packages: ["geochart"],
-          language: "ja",
-        });
-        google.charts.setOnLoadCallback(() => {
-          if (
-            document
-              .getElementById("tab-distribution")
-              .classList.contains("active")
-          ) {
-            drawJapanMap();
-          }
-        });
-      }
-
-      window.addEventListener("resize", () => {
+    // Initialize Google Charts
+    if (typeof google !== "undefined") {
+      google.charts.load("current", {
+        packages: ["geochart"],
+        language: "ja",
+      });
+      google.charts.setOnLoadCallback(() => {
         if (
           document
             .getElementById("tab-distribution")
-            .classList.contains("active") &&
-          japanMapLoaded
+            .classList.contains("active")
         ) {
           drawJapanMap();
         }
       });
+    }
 
-      // ===== カスタム抽出用 ビルダーロジック =====
-      const filterOptions = {
-        area: [
-          { val: "", label: "すべて" },
-          { val: "kanto", label: "関東" },
-          { val: "kansai", label: "関西" },
-          { val: "tokai", label: "東海" },
-          { val: "other", label: "その他" },
-        ],
-        status: [
-          { val: "", label: "すべて" },
-          { val: "high", label: "高アクティブ" },
-          { val: "normal", label: "通常稼働" },
-          { val: "warning", label: "休眠予備軍" },
-          { val: "churn", label: "解約済" },
-        ],
-        scale: [
-          { val: "", label: "すべて" },
-          { val: "small", label: "小規模 (1-3)" },
-          { val: "medium", label: "中規模 (4-9)" },
-          { val: "large", label: "大規模 (10+)" },
-        ],
-        period: [
-          { val: "", label: "指定なし" },
-          { val: "0-6", label: "半年以内" },
-          { val: "6-12", label: "半年〜1年" },
-          { val: "12-24", label: "1年〜2年" },
-          { val: "24+", label: "2年以上" },
-        ],
-        shots: [
-          { val: "", label: "指定なし" },
-          { val: "0", label: "0枚（未稼働）" },
-          { val: "1-50", label: "1〜50枚" },
-          { val: "51-200", label: "51〜200枚" },
-          { val: "201+", label: "201枚以上" },
-        ],
-        channel: [
-          { val: "", label: "すべて" },
-          { val: "direct", label: "直販（Web/紹介）" },
-          { val: "agentA", label: "代理店A" },
-          { val: "agentB", label: "代理店B" },
-        ],
-        timing: [
-          { val: "", label: "指定なし" },
-          { val: "this-month", label: "今月" },
-          { val: "last-3m", label: "過去3ヶ月以内" },
-          { val: "this-year", label: "今年度 (2024年)" },
-          { val: "last-year", label: "昨年度 (2023年)" },
-          { val: "older", label: "それ以前" },
-        ],
-        biztype: [
-          { val: "", label: "すべて" },
-          { val: "seikotsu", label: "整骨院/整体" },
-          { val: "biyou", label: "美容外科/サロン" },
-          { val: "seikei", label: "整形外科" },
-          { val: "other", label: "その他" },
-        ],
-      };
-
-      function updateFilterValues(selectElem) {
-        const valSelect = selectElem.nextElementSibling;
-        const field = selectElem.value;
-
-        valSelect.innerHTML =
-          '<option value="">（条件を選択してください）</option>';
-        if (filterOptions[field]) {
-          filterOptions[field].forEach((opt) => {
-            valSelect.innerHTML += `<option value="${opt.val}">${opt.label}</option>`;
-          });
-          valSelect.disabled = false;
-        } else {
-          valSelect.disabled = true;
-        }
+    window.addEventListener("resize", () => {
+      if (
+        document
+          .getElementById("tab-distribution")
+          .classList.contains("active") &&
+        japanMapLoaded
+      ) {
+        drawJapanMap();
       }
+    });
 
-      function addFilterRow() {
-        const container = document.getElementById("filter-builder");
-        const newRow = document.createElement("div");
-        newRow.className = "filter-row flex items-center gap-3 mb-3";
-        newRow.innerHTML = `
+    // ===== カスタム抽出用 ビルダーロジック =====
+    const filterOptions = {
+      area: [
+        { val: "", label: "すべて" },
+        { val: "kanto", label: "関東" },
+        { val: "kansai", label: "関西" },
+        { val: "tokai", label: "東海" },
+        { val: "other", label: "その他" },
+      ],
+      status: [
+        { val: "", label: "すべて" },
+        { val: "high", label: "高アクティブ" },
+        { val: "normal", label: "通常稼働" },
+        { val: "warning", label: "休眠予備軍" },
+        { val: "churn", label: "解約済" },
+      ],
+      scale: [
+        { val: "", label: "すべて" },
+        { val: "small", label: "小規模 (1-3)" },
+        { val: "medium", label: "中規模 (4-9)" },
+        { val: "large", label: "大規模 (10+)" },
+      ],
+      period: [
+        { val: "", label: "指定なし" },
+        { val: "0-6", label: "半年以内" },
+        { val: "6-12", label: "半年〜1年" },
+        { val: "12-24", label: "1年〜2年" },
+        { val: "24+", label: "2年以上" },
+      ],
+      shots: [
+        { val: "", label: "指定なし" },
+        { val: "0", label: "0枚（未稼働）" },
+        { val: "1-50", label: "1〜50枚" },
+        { val: "51-200", label: "51〜200枚" },
+        { val: "201+", label: "201枚以上" },
+      ],
+      channel: [
+        { val: "", label: "すべて" },
+        { val: "direct", label: "直販（Web/紹介）" },
+        { val: "agentA", label: "代理店A" },
+        { val: "agentB", label: "代理店B" },
+      ],
+      timing: [
+        { val: "", label: "指定なし" },
+        { val: "this-month", label: "今月" },
+        { val: "last-3m", label: "過去3ヶ月以内" },
+        { val: "this-year", label: "今年度 (2024年)" },
+        { val: "last-year", label: "昨年度 (2023年)" },
+        { val: "older", label: "それ以前" },
+      ],
+      biztype: [
+        { val: "", label: "すべて" },
+        { val: "seikotsu", label: "整骨院/整体" },
+        { val: "biyou", label: "美容外科/サロン" },
+        { val: "seikei", label: "整形外科" },
+        { val: "other", label: "その他" },
+      ],
+    };
+
+    function updateFilterValues(selectElem) {
+      const valSelect = selectElem.nextElementSibling;
+      const field = selectElem.value;
+
+      valSelect.innerHTML =
+        '<option value="">（条件を選択してください）</option>';
+      if (filterOptions[field]) {
+        filterOptions[field].forEach((opt) => {
+          valSelect.innerHTML += `<option value="${opt.val}">${opt.label}</option>`;
+        });
+        valSelect.disabled = false;
+      } else {
+        valSelect.disabled = true;
+      }
+    }
+
+    function addFilterRow() {
+      const container = document.getElementById("filter-builder");
+      const newRow = document.createElement("div");
+      newRow.className = "filter-row flex items-center gap-3 mb-3";
+      newRow.innerHTML = `
                 <select class="input w-48" onchange="updateFilterValues(this)">
                     <option value="">（項目を選択）</option>
                     <option value="area">エリア</option>
@@ -2494,174 +2197,219 @@
                     <i data-lucide="trash-2" width="16"></i>
                 </button>
             `;
-        container.appendChild(newRow);
+      container.appendChild(newRow);
 
-        // Re-render icons for the newly added trash icon
-        if (window.lucide) {
-          lucide.createIcons();
+      // Re-render icons for the newly added trash icon
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+
+      // Show trash icons if there are multiple rows
+      updateTrashIconsVisibility();
+    }
+
+    function removeFilterRow(btn) {
+      btn.closest(".filter-row").remove();
+      updateTrashIconsVisibility();
+    }
+
+    function updateTrashIconsVisibility() {
+      const rows = document.querySelectorAll(".filter-row");
+      rows.forEach((row) => {
+        const trashBtn = row.querySelector(".text-danger");
+        if (trashBtn) {
+          // 1つしかない場合は削除ボタンを隠す
+          trashBtn.style.display = rows.length > 1 ? "block" : "none";
         }
+      });
+    }
 
-        // Show trash icons if there are multiple rows
-        updateTrashIconsVisibility();
+    /* ====== 抽出条件アコーディオン ====== */
+    let filterAccordionOpen = false;
+
+    function toggleFilterAccordion() {
+      filterAccordionOpen = !filterAccordionOpen;
+      const body = document.getElementById("filter-accordion-body");
+      const chevron = document.getElementById("filter-chevron");
+      if (filterAccordionOpen) {
+        body.style.display = "block";
+        chevron.style.transform = "rotate(90deg)";
+      } else {
+        body.style.display = "none";
+        chevron.style.transform = "rotate(0deg)";
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function clearAllFilters() {
+      // フィルター行を1行だけにリセット
+      const container = document.getElementById("filter-builder");
+      container.innerHTML = `
+        <div class="filter-row flex items-center gap-3 mb-3">
+          <select class="input w-48" onchange="updateFilterValues(this)">
+            <option value="">（項目を選択）</option>
+            <option value="area">エリア</option>
+            <option value="status">ステータス (ヘルススコア)</option>
+            <option value="scale">院規模</option>
+            <option value="period">継続期間 (契約から)</option>
+            <option value="shots">月間撮影枚数</option>
+            <option value="channel">導入経路 / 代理店</option>
+            <option value="timing">導入時期</option>
+            <option value="biztype">業態</option>
+          </select>
+          <select class="input w-64">
+            <option value="">（条件を選択してください）</option>
+          </select>
+          <button class="btn btn-secondary px-2 text-danger" style="display: none" onclick="removeFilterRow(this)">
+            <i data-lucide="trash-2" width="16"></i>
+          </button>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    /* ====== カスタム抽出 User別 グラフ描画 ====== */
+    let customUserActivityChartInstance = null;
+    let currentSelectedUser = "";
+
+    const customUserGraphData = {
+      hourly: {
+        labels: Array.from({ length: 25 }, (_, i) => `${i}:00`),
+        patients: Array.from({ length: 25 }, () =>
+          Math.floor(Math.random() * 5),
+        ),
+        shots: Array.from({ length: 25 }, () =>
+          Math.floor(Math.random() * 20),
+        ),
+      },
+      daily: {
+        labels: Array.from({ length: 31 }, (_, i) => `${i + 1}日`),
+        patients: Array.from({ length: 31 }, () =>
+          Math.floor(Math.random() * 20),
+        ),
+        shots: Array.from({ length: 31 }, () =>
+          Math.floor(Math.random() * 50),
+        ),
+      },
+      monthly: {
+        labels: Array.from({ length: 12 }, (_, i) => `${i + 1}月`),
+        patients: Array.from({ length: 12 }, () =>
+          Math.floor(Math.random() * 100),
+        ),
+        shots: Array.from({ length: 12 }, () =>
+          Math.floor(Math.random() * 300),
+        ),
+      },
+    };
+
+    function updateCustomUserGraph(period) {
+      if (!customUserActivityChartInstance) return;
+      const data = customUserGraphData[period];
+      // randomize loosely to simulate changing periods but for demo just use standard
+      customUserActivityChartInstance.data.labels = data.labels;
+      customUserActivityChartInstance.data.datasets[0].data =
+        data.patients.map((v) => v + Math.floor(Math.random() * 5));
+      customUserActivityChartInstance.data.datasets[1].data = data.shots.map(
+        (v) => v + Math.floor(Math.random() * 10),
+      );
+      customUserActivityChartInstance.update();
+    }
+
+    function showCustomUserGraph(rowElem, userName) {
+      // UI 更新
+      document.getElementById("custom-user-graph-container").style.display =
+        "block";
+      document.getElementById("custom-user-graph-title").innerText =
+        `${userName} の推移グラフ`;
+      if (window.lucide) lucide.createIcons();
+
+      // ハイライト
+      document
+        .querySelectorAll("#tab-custom tbody tr")
+        .forEach((tr) => tr.classList.remove("bg-primary-50"));
+      if (rowElem) rowElem.classList.add("bg-primary-50");
+
+      const ctx = document.getElementById("customUserActivityChart");
+
+      if (customUserActivityChartInstance) {
+        customUserActivityChartInstance.destroy();
       }
 
-      function removeFilterRow(btn) {
-        btn.closest(".filter-row").remove();
-        updateTrashIconsVisibility();
-      }
+      const period =
+        document.getElementById("customUserGraphPeriod").value || "monthly";
+      const data = customUserGraphData[period];
+      const colorPrimary = getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-primary-500")
+        .trim();
+      const colorSuccess =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--color-success")
+          .trim() || "#10b981";
 
-      function updateTrashIconsVisibility() {
-        const rows = document.querySelectorAll(".filter-row");
-        rows.forEach((row) => {
-          const trashBtn = row.querySelector(".text-danger");
-          if (trashBtn) {
-            // 1つしかない場合は削除ボタンを隠す
-            trashBtn.style.display = rows.length > 1 ? "block" : "none";
-          }
-        });
-      }
-
-      /* ====== カスタム抽出 User別 グラフ描画 ====== */
-      let customUserActivityChartInstance = null;
-      let currentSelectedUser = "";
-
-      const customUserGraphData = {
-        hourly: {
-          labels: Array.from({ length: 25 }, (_, i) => `${i}:00`),
-          patients: Array.from({ length: 25 }, () =>
-            Math.floor(Math.random() * 5),
-          ),
-          shots: Array.from({ length: 25 }, () =>
-            Math.floor(Math.random() * 20),
-          ),
+      customUserActivityChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.labels,
+          datasets: [
+            {
+              label: "患者数",
+              data: data.patients.map(
+                (v) => v + Math.floor(Math.random() * 10),
+              ),
+              borderColor: colorSuccess,
+              backgroundColor: colorSuccess,
+              fill: false,
+              tension: 0.3,
+              yAxisID: "y-patients",
+            },
+            {
+              label: "撮影枚数",
+              data: data.shots.map((v) => v + Math.floor(Math.random() * 30)),
+              borderColor: colorPrimary,
+              backgroundColor: colorPrimary,
+              fill: false,
+              tension: 0.3,
+              yAxisID: "y-shots",
+            },
+          ],
         },
-        daily: {
-          labels: Array.from({ length: 31 }, (_, i) => `${i + 1}日`),
-          patients: Array.from({ length: 31 }, () =>
-            Math.floor(Math.random() * 20),
-          ),
-          shots: Array.from({ length: 31 }, () =>
-            Math.floor(Math.random() * 50),
-          ),
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            "y-patients": {
+              type: "linear",
+              position: "left",
+              title: { display: true, text: "患者数 (人)" },
+            },
+            "y-shots": {
+              type: "linear",
+              position: "right",
+              title: { display: true, text: "撮影枚数 (枚)" },
+              grid: { drawOnChartArea: false },
+            },
+          },
+          plugins: {
+            legend: {
+              position: "top",
+              labels: {
+                font: { size: 11 },
+                usePointStyle: true,
+                boxWidth: 8,
+              },
+            },
+          },
         },
-        monthly: {
-          labels: Array.from({ length: 12 }, (_, i) => `${i + 1}月`),
-          patients: Array.from({ length: 12 }, () =>
-            Math.floor(Math.random() * 100),
-          ),
-          shots: Array.from({ length: 12 }, () =>
-            Math.floor(Math.random() * 300),
-          ),
-        },
-      };
+      });
 
-      function updateCustomUserGraph(period) {
-        if (!customUserActivityChartInstance) return;
-        const data = customUserGraphData[period];
-        // randomize loosely to simulate changing periods but for demo just use standard
-        customUserActivityChartInstance.data.labels = data.labels;
-        customUserActivityChartInstance.data.datasets[0].data =
-          data.patients.map((v) => v + Math.floor(Math.random() * 5));
-        customUserActivityChartInstance.data.datasets[1].data = data.shots.map(
-          (v) => v + Math.floor(Math.random() * 10),
-        );
-        customUserActivityChartInstance.update();
-      }
-
-      function showCustomUserGraph(rowElem, userName) {
-        // UI 更新
-        document.getElementById("custom-user-graph-container").style.display =
-          "block";
-        document.getElementById("custom-user-graph-title").innerText =
-          `${userName} の推移グラフ`;
-        if (window.lucide) lucide.createIcons();
-
-        // ハイライト
+      // scroll into view
+      setTimeout(() => {
         document
-          .querySelectorAll("#tab-custom tbody tr")
-          .forEach((tr) => tr.classList.remove("bg-primary-50"));
-        if (rowElem) rowElem.classList.add("bg-primary-50");
+          .getElementById("custom-user-graph-container")
+          .scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 100);
+    }
+  </script>
+</body>
 
-        const ctx = document.getElementById("customUserActivityChart");
-
-        if (customUserActivityChartInstance) {
-          customUserActivityChartInstance.destroy();
-        }
-
-        const period =
-          document.getElementById("customUserGraphPeriod").value || "monthly";
-        const data = customUserGraphData[period];
-        const colorPrimary = getComputedStyle(document.documentElement)
-          .getPropertyValue("--color-primary-500")
-          .trim();
-        const colorSuccess =
-          getComputedStyle(document.documentElement)
-            .getPropertyValue("--color-success")
-            .trim() || "#10b981";
-
-        customUserActivityChartInstance = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: data.labels,
-            datasets: [
-              {
-                label: "患者数",
-                data: data.patients.map(
-                  (v) => v + Math.floor(Math.random() * 10),
-                ),
-                borderColor: colorSuccess,
-                backgroundColor: colorSuccess,
-                fill: false,
-                tension: 0.3,
-                yAxisID: "y-patients",
-              },
-              {
-                label: "撮影枚数",
-                data: data.shots.map((v) => v + Math.floor(Math.random() * 30)),
-                borderColor: colorPrimary,
-                backgroundColor: colorPrimary,
-                fill: false,
-                tension: 0.3,
-                yAxisID: "y-shots",
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              "y-patients": {
-                type: "linear",
-                position: "left",
-                title: { display: true, text: "患者数 (人)" },
-              },
-              "y-shots": {
-                type: "linear",
-                position: "right",
-                title: { display: true, text: "撮影枚数 (枚)" },
-                grid: { drawOnChartArea: false },
-              },
-            },
-            plugins: {
-              legend: {
-                position: "top",
-                labels: {
-                  font: { size: 11 },
-                  usePointStyle: true,
-                  boxWidth: 8,
-                },
-              },
-            },
-          },
-        });
-
-        // scroll into view
-        setTimeout(() => {
-          document
-            .getElementById("custom-user-graph-container")
-            .scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }, 100);
-      }
-    </script>
-  </body>
 </html>
